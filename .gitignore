@@ -1,0 +1,12 @@
+.idea
+*.pyc
+.venv/
+.env
+**/__pycache__/
+plan.txt
+# Node / React
+node_modules/
+dist/
+.ruff_cache
+*.log
+.pytest_cache

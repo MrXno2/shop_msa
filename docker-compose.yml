@@ -1,0 +1,7 @@
+services:
+  serv_auth:
+    build:
+      context: .
+      dockerfile: srv_auth/Dockerfile
+    ports:
+      - "8001:8001"
