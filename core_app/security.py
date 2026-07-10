@@ -13,19 +13,29 @@ def create_access_token(data: dict) -> str:
 
 def is_validity_token(access_token: str = Cookie(None)):
     if not access_token:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not autorization")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authorized")
     try:
         payload = jwt.decode(access_token, settings.JWT_SECRET_KEY, algorithms=["HS256"])
         return payload
     except jwt.InvalidTokenError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalis token")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
 
 
-def set_access_cookie(response: Response, token: str) -> None:
+def is_admin_token(admin_access_token: str = Cookie(None)):
+    payload = is_validity_token(admin_access_token)
+    if payload.get("uuid") != "admin":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not admin")
+    return payload
+
+
+
+def set_cookie(name_token: str, response: Response, token: str) -> None:
     response.set_cookie(
-        key=settings.JWT_ACCESS_COOKIE_NAME,
+        key=name_token,
         value=token,
         httponly=True,
-        samesite="lax",
-        path="/",
+        secure=False,
+        samesite="lax",  # 👈 Или "none"
+        domain="127.0.0.1",  # 👈 Добавь явно домен
+        path="/",  # 👈 Чтобы кука была доступна на всех путях
     )

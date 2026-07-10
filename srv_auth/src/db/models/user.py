@@ -11,7 +11,7 @@ class UserORM(Base):
         String(20), unique=True, nullable=False, index=True
     )
     password_hash: Mapped[str] = mapped_column(Text, nullable=False)
-    email: Mapped[str] = mapped_column(String(255), nullable=True)
+    email: Mapped[str] = mapped_column(String(255), unique=True, nullable=True)
     country: Mapped[str] = mapped_column(String(155), nullable=True)
     city: Mapped[str] = mapped_column(String(155), nullable=True)
     address: Mapped[str] = mapped_column(String(255), nullable=True)
