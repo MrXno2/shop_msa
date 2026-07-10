@@ -47,7 +47,7 @@ class ProductListQuerySchema(BaseModel):
     in_stock: bool | None = None
     on_sale: bool | None = None
     search: str | None = Field(None, max_length=100)
-    sort_by: str = Field(default="created_at")
+    sort_by: str = Field(default="name")
     sort_order: str = Field(default="desc", pattern=r"^(asc|desc)$")
     limit: int = Field(default=20, ge=1, le=100)
     offset: int = Field(default=0, ge=0)
@@ -123,7 +123,7 @@ class ProductRepository:
         if filters.min_price is not None:
             conditions.append(ProductORM.price >= filters.min_price)
         
-        if filters.max_price is not None:
+        if filters.max_price:
             conditions.append(ProductORM.price <= filters.max_price)
         
         if filters.in_stock:
@@ -243,7 +243,7 @@ ProductServiceDep = Annotated[ProductService, Depends(get_product_servise)]
 
 
 @router.post("/create", status_code=status.HTTP_201_CREATED)
-async def create_product(
+async def lock_create_product(
     req_data: ProductCreateSchema,
     product_service: ProductServiceDep,
     payload = Depends(is_admin_token)
@@ -259,16 +259,16 @@ async def get_product(
     return await product_service.get_product(uuid_product)
 
 
-@router.post("/get_list", status_code=status.HTTP_200_OK)
+@router.get("/get_list", status_code=status.HTTP_200_OK)
 async def get_list_products(
-    query_params: ProductListQuerySchema,
-    product_service: ProductServiceDep
+    product_service: ProductServiceDep,
+    query_params: ProductListQuerySchema = Depends(),
 ) -> ProductListResponse:
     return await product_service.get_product_list(query_params)
 
 
 @router.patch("/full_update", status_code=status.HTTP_200_OK)
-async def full_update_product(
+async def lock_full_update_product(
     req_data: ProductSchema,
     product_service: ProductServiceDep,
     payload = Depends(is_admin_token)
@@ -277,7 +277,7 @@ async def full_update_product(
 
 
 @router.delete("/delete/{uuid_product}", status_code=status.HTTP_200_OK)
-async def delete_product(
+async def lock_delete_product(
     uuid_product: UUID, 
     product_service: ProductServiceDep,
     payload = Depends(is_admin_token)
