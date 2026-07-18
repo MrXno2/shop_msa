@@ -10,10 +10,9 @@ source srv_catalog/.venv/bin/activate
 uvicorn srv_catalog.src.main:app --port 8002 --reload
 
 
-доделать категории, ПРОТЕСТИТЬ
-сделать корзину, хз как
-сделать кеш таблицу в корзину которая хранит минимум данных товара
-и обновляется через раббит из каталога
+написать сохранение кэша в корзине,
+написать ручки для корзины.
+сделать обработку заказов.
 
 
 docker run --name my-postgres -e POSTGRES_PASSWORD=admin -p 5432:5432 -d postgres:16-alpine

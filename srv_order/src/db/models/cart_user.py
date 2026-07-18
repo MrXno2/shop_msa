@@ -5,7 +5,7 @@ from srv_order.src.db.models.base import Base
 
 
 class CartORM(Base):
-    __tablename__ = "carts"
+    __tablename__ = "carts_users"
 
     uuid_user: Mapped[UUID] = mapped_column(
         PG_UUID(as_uuid=True),

@@ -21,6 +21,8 @@ class Settings(BaseSettings):
     JWT_SECRET_KEY: str = "dopustim_pass_very_secret_key"
     JWT_ACCESS_TOKEN_EXPIRES_SECONDS: int = 36000
 
+    RABBIT_URL: str = "amqp://guest:guest@localhost:5672/"
+
     # db localhost
     POSTGRES_URL_SERV_AUTH: str = "postgresql+asyncpg://postgres:admin@localhost:5432/postgres"
     POSTGRES_URL_SERV_CART: str = "postgresql+asyncpg://postgres:admin@localhost:5432/postgres"

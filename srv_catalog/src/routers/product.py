@@ -1,7 +1,7 @@
 from decimal import Decimal
 from typing import Annotated
 from uuid import UUID
-from sqlalchemy import and_, asc, delete, desc, func, or_, select, update
+from sqlalchemy import Result, and_, asc, delete, desc, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field, field_validator
@@ -10,6 +10,7 @@ from core_app.exception import ProductNotFound
 from srv_catalog.src.db.models.product import ProductORM
 from srv_catalog.src.dependensies import DbDep
 from sqlalchemy.exc import IntegrityError
+from srv_catalog.src.rabbit.rabbit import rabbit_cart_product_cache
 
 
 router = APIRouter(prefix="/product")
@@ -197,6 +198,9 @@ class ProductService():
         try:
             await self.product_repo.create_product(product)
             await self.db.commit()
+
+            event = ProductSchema.model_validate(product)
+            await rabbit_cart_product_cache.publish("cart_product_cache.created", event.model_dump(mode="json"))
         except IntegrityError:
             await self.db.rollback()
             raise HTTPException(400, "Invalid category_id or duplicate data")
@@ -212,6 +216,7 @@ class ProductService():
     async def del_product(self, uuid_product: UUID) -> None:
         await self.product_repo.del_product(uuid_product)
         await self.db.commit()
+        await rabbit_cart_product_cache.publish("cart_product_cache.delete", {"uuid_product": str(uuid_product)})
 
 
     async def full_update_product(self, req_data: ProductSchema) -> None:
@@ -220,6 +225,8 @@ class ProductService():
             raise ProductNotFound()
         await self.product_repo.full_update_product(req_data)
         await self.db.commit()
+        event = ProductSchema.model_validate(product)
+        await rabbit_cart_product_cache.publish("cart_product_cache.update", event.model_dump(mode="json"))
 
 
     async def get_product_list(
