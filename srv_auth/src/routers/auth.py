@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, timezone
 import re
 from typing import Annotated
+from uuid import UUID
 import bcrypt
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,6 +14,7 @@ from core_app.settings import settings
 from srv_auth.src.db.models.user import UserORM
 from srv_auth.src.dependensies import DbDep
 from sqlalchemy.exc import IntegrityError
+from srv_auth.src.rabbit.rabbit import rabbit_wallet_user
 
 
 # хэширует пароль
@@ -77,6 +79,10 @@ class AuthRegisterReqSchema(BaseModel):
         if self.password1 != self.password2:
             raise ValueError("Passwords do not match.")
         return self
+    
+
+class UserDataWalletSchema(BaseModel):
+    uuid: UUID
 
 
 class UserRepository:
@@ -123,6 +129,8 @@ class AuthService():
             # запрос в бд
             await self.auth_repo.create_user(new_user)
             await self.db.commit()
+            event = UserDataWalletSchema.model_validate(new_user)
+            await rabbit_wallet_user.publish("wallet_user.created", event.model_dump(mode="json"))
             return str(new_user.uuid)
         except (UserPhoneAlreadyExists, UserEmailAlreadyExists):
             await self.db.rollback()

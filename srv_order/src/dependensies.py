@@ -1,7 +1,16 @@
 from typing import Annotated
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Depends
-from srv_catalog.src.db.session import get_db
+from srv_order.src.services.cart_product_cache import CartProductCacheService
+from srv_order.src.db.session import get_db
 
 
 DbDep = Annotated[AsyncSession, Depends(get_db)]
+
+
+"""
+async def get_cart_product_cache_servise(db: DbDep) -> CartProductCacheService:
+    return CartProductCacheService(db)
+
+CartProductCacheServiceDep = Annotated[CartProductCacheService, Depends(get_cart_product_cache_servise)]
+"""

@@ -118,7 +118,8 @@ async def set_category_in_catalog(
 @router.delete("/del/{uuid_category}")
 async def delete_category_in_catalog(
     uuid_category: UUID,
-    category_servise: CategoryServiceDep
+    category_servise: CategoryServiceDep,
+    payload = Depends(is_admin_token)
 ) -> None:
     await category_servise.del_category(uuid_category)
 
