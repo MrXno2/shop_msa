@@ -126,4 +126,4 @@ class RabbitMain:
             await self._connection.close()
 
 
-rabbit_wallet_user = RabbitMain(exchange_name="wallet_user")
+rabbit_wallet_user = RabbitMain(exchange_name="payment_auth")

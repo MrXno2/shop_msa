@@ -125,5 +125,6 @@ class RabbitMain:
         if self._connection:
             await self._connection.close()
 
+rabbit_wallet_user = RabbitMain(exchange_name="payment_auth")
 
-rabbit_catalog_order = RabbitMain(exchange_name="catalog_order")
+rabbit_payment_order = RabbitMain(exchange_name="payment_order")

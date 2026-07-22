@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field, field_validator
 from core_app.security import is_admin_token
 from core_app.exception import ProductNotFound 
+from shop_msa.srv_order.src.routers.order import OrderRepository, PaymentStatusSchema
 from srv_order.src.db.session import db_session
 from srv_order.src.db.models.cart_product_cache import CartProductCacheORM
 from srv_order.src.dependensies import DbDep
@@ -32,7 +33,7 @@ class CartCacheDeleteSchema(BaseModel):
     uuid_product: UUID
 
 
-class ProductRepository:
+class CartProductRepository:
     def __init__(self, db: AsyncSession) -> None:
         self.db = db
     
@@ -65,13 +66,13 @@ class ProductRepository:
         return product.scalar_one_or_none()
     
 
-class CartProductCacheService():
+class RabbitCatalogOrderService():
     async def create_product(
         self, 
         message: aio_pika.IncomingMessage,
     ) -> None:
         async with db_session() as db:
-            product_repo = ProductRepository(db)
+            product_repo = CartProductRepository(db)
             data = CartCacheProductSchema.model_validate_json(message.body)
             product = CartProductCacheORM(
                 uuid_product = data.uuid,
@@ -94,7 +95,7 @@ class CartProductCacheService():
         message: aio_pika.IncomingMessage
     ) -> None:
         async with db_session() as db:
-            product_repo = ProductRepository(db)
+            product_repo = CartProductRepository(db)
             data = CartCacheDeleteSchema.model_validate_json(message.body)
 
             await product_repo.del_product(data.uuid_product)
@@ -108,7 +109,7 @@ class CartProductCacheService():
         message: aio_pika.IncomingMessage,
     ) -> None:
         async with db_session() as db:
-            product_repo = ProductRepository(db)
+            product_repo = CartProductRepository(db)
             data = CartCacheProductSchema.model_validate_json(message.body)
 
             product = await product_repo.get_product(data.uuid)
@@ -122,3 +123,15 @@ class CartProductCacheService():
             await db.commit()
 
             print(data)
+
+
+class RabbitPaymentOrderService:
+    async def update_status_payment(
+        self, 
+        message: aio_pika.IncomingMessage,
+    ) -> None:
+        async with db_session() as db:
+            order_repo = OrderRepository(db)
+            data = PaymentStatusSchema.model_validate_json(message.body)
+            await order_repo.update_status_payment(data=data)
+            await db.commit()

@@ -126,4 +126,6 @@ class RabbitMain:
             await self._connection.close()
 
 
-rabbit_cart_product_cache = RabbitMain(exchange_name="cart_product_cache")
+rabbit_catalog_order = RabbitMain(exchange_name="catalog_order")
+
+rabbit_payment_order = RabbitMain(exchange_name="payment_order")

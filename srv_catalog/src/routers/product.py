@@ -10,7 +10,7 @@ from core_app.exception import ProductNotFound
 from srv_catalog.src.db.models.product import ProductORM
 from srv_catalog.src.dependensies import DbDep
 from sqlalchemy.exc import IntegrityError
-from srv_catalog.src.rabbit.rabbit import rabbit_cart_product_cache
+from srv_catalog.src.rabbit.rabbit import rabbit_catalog_order
 
 
 router = APIRouter(prefix="/product")
@@ -106,13 +106,15 @@ class ProductRepository:
         )
 
 
-    async def full_update_product(self, req_data: ProductSchema) -> None:
+    async def full_update_product(self, req_data: ProductSchema) -> ProductORM | None:
         update_data = req_data.model_dump(exclude={"uuid"})
-        await self.db.execute(
+        result = await self.db.execute(
             update(ProductORM)
             .where(ProductORM.uuid == req_data.uuid)
             .values(**update_data)
+            .returning(ProductORM)
         )
+        return result.scalar_one_or_none()
 
 
     async def get_products_with_filters(
@@ -200,7 +202,7 @@ class ProductService():
             await self.db.commit()
 
             event = ProductSchema.model_validate(product)
-            await rabbit_cart_product_cache.publish("cart_product_cache.created", event.model_dump(mode="json"))
+            await rabbit_catalog_order.publish("catalog_order.created", event.model_dump(mode="json"))
         except IntegrityError:
             await self.db.rollback()
             raise HTTPException(400, "Invalid category_id or duplicate data")
@@ -216,17 +218,16 @@ class ProductService():
     async def del_product(self, uuid_product: UUID) -> None:
         await self.product_repo.del_product(uuid_product)
         await self.db.commit()
-        await rabbit_cart_product_cache.publish("cart_product_cache.delete", {"uuid_product": str(uuid_product)})
+        await rabbit_catalog_order.publish("catalog_order.delete", {"uuid_product": str(uuid_product)})
 
 
     async def full_update_product(self, req_data: ProductSchema) -> None:
-        product = await self.product_repo.get_product(req_data.uuid)
-        if not product:
+        result = await self.product_repo.full_update_product(req_data)
+        if result is None:
             raise ProductNotFound()
-        await self.product_repo.full_update_product(req_data)
         await self.db.commit()
-        event = ProductSchema.model_validate(product)
-        await rabbit_cart_product_cache.publish("cart_product_cache.update", event.model_dump(mode="json"))
+        event = ProductSchema.model_validate(result)
+        await rabbit_catalog_order.publish("catalog_order.update", event.model_dump(mode="json"))
 
 
     async def get_product_list(

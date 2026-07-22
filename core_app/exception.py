@@ -31,3 +31,8 @@ class NotAdminError(BaseExceptionApp):
 class ProductNotFound(BaseExceptionApp):
     """Product Not Found ."""
     pass
+
+
+class InsufficientFundsError(BaseExceptionApp):
+    """InsufficientFundsError ."""
+    pass

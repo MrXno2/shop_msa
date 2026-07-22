@@ -28,7 +28,7 @@ uvicorn srv_catalog.src.main:app --port 8002 --reload
 через брокера.
 uuid_user (FK → auth user)
 balance: Decimal = 0
-это сделал осталось в сервисе оплаты прнять uuid из auth
+это сделал
 
 
 docker run --name my-postgres -e POSTGRES_PASSWORD=admin -p 5432:5432 -d postgres:16-alpine

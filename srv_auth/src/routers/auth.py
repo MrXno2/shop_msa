@@ -83,6 +83,7 @@ class AuthRegisterReqSchema(BaseModel):
 
 class UserDataWalletSchema(BaseModel):
     uuid: UUID
+    number: str
 
 
 class UserRepository:
@@ -130,7 +131,7 @@ class AuthService():
             await self.auth_repo.create_user(new_user)
             await self.db.commit()
             event = UserDataWalletSchema.model_validate(new_user)
-            await rabbit_wallet_user.publish("wallet_user.created", event.model_dump(mode="json"))
+            await rabbit_wallet_user.publish("payment_auth.created", event.model_dump(mode="json"))
             return str(new_user.uuid)
         except (UserPhoneAlreadyExists, UserEmailAlreadyExists):
             await self.db.rollback()
