@@ -1,6 +1,6 @@
-from shop_msa.srv_order.src.routers.order import OrderService
-from shop_msa.srv_order.src.services.rabbit_catalog_order import RabbitCatalogOrderService, RabbitPaymentOrderService
-from srv_order.src.rabbit.rabbit import RabbitMain
+from srv_order.src.routers.order import OrderService
+from srv_order.src.rabbit.services import RabbitCatalogOrderService, RabbitPaymentOrderService
+from core_app.rabbit import RabbitMain
 from srv_order.src.db.session import db_session, get_db
 
 
@@ -23,6 +23,12 @@ async def register_consumers_catalog_order(
         queue="catalog_order.update",
         routing_key="catalog_order.update",
         handler=order_serv.full_update_product,
+    )
+
+    rabbit.consumer(
+        queue="catalog_order.handle_stock_deduction_result",
+        routing_key="catalog_order.handle_stock_deduction_result",
+        handler=order_serv.handle_stock_deduction_result,
     )
 
 async def register_consumers_payment_order(

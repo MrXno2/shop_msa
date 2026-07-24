@@ -7,14 +7,14 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, status
 import jwt
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 import core_app.security as security
 from core_app.exception import InvalidPassword, UserEmailAlreadyExists, UserNotFound, UserPhoneAlreadyExists
 from core_app.settings import settings
 from srv_auth.src.db.models.user import UserORM
 from srv_auth.src.dependensies import DbDep
 from sqlalchemy.exc import IntegrityError
-from srv_auth.src.rabbit.rabbit import rabbit_wallet_user
+from core_app.rabbit import rabbit_payment_auth
 
 
 # хэширует пароль
@@ -82,7 +82,9 @@ class AuthRegisterReqSchema(BaseModel):
     
 
 class UserDataWalletSchema(BaseModel):
-    uuid: UUID
+    model_config = ConfigDict(from_attributes=True)
+    
+    uuid_user: UUID
     number: str
 
 
@@ -130,8 +132,11 @@ class AuthService():
             # запрос в бд
             await self.auth_repo.create_user(new_user)
             await self.db.commit()
-            event = UserDataWalletSchema.model_validate(new_user)
-            await rabbit_wallet_user.publish("payment_auth.created", event.model_dump(mode="json"))
+            event = UserDataWalletSchema(
+                uuid_user = new_user.uuid,
+                number = new_user.number
+            )
+            await rabbit_payment_auth.publish("payment_auth.created", event.model_dump(mode="json"))
             return str(new_user.uuid)
         except (UserPhoneAlreadyExists, UserEmailAlreadyExists):
             await self.db.rollback()

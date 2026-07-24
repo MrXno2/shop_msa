@@ -11,7 +11,7 @@ from core_app.security import is_admin_token, is_validity_token
 from srv_order.src.db.models.order import OrderORM, OrderStatus
 from srv_order.src.dependensies import DbDep
 from srv_order.src.routers.cart import CartRepository, CartCacheProductSchema
-from srv_order.src.rabbit.rabbit import rabbit_payment_order
+from core_app.rabbit import rabbit_payment_order, rabbit_catalog_order
 
 
 
@@ -51,12 +51,20 @@ class OrderSchema(BaseModel):
     items: List[dict]
 
 
+class RabbitRequestCatalog(BaseModel):
+    id_order: int
+    uuid_user: UUID
+    products: List[dict]
+
+
 class OrderRepository:
     def __init__(self, db: AsyncSession) -> None:
         self.db = db
 
-    async def create_order(self, order: OrderORM) -> None:
+    async def create_order(self, order: OrderORM) -> OrderORM:
         self.db.add(order)
+        await self.db.flush()
+        return order
 
     async def update_status_order(self, data: OrderStatusSchema) -> None:
         await self.db.execute(
@@ -121,7 +129,7 @@ class OrderService():
     async def pay_for_order(self, uuid_user: UUID, id_order: int) -> None:
         order = await self.order_repo.get_order(uuid_user=uuid_user, id_order=id_order)
         if order is None:
-            raise HTTPException(status.HTTP_404, "Order not found for this user")
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "Order not found for this user")
         data_send = RabbitSendOrderPaymentSchema(
             uuid_user=order.uuid_user,
             id_order=order.id,
@@ -129,7 +137,7 @@ class OrderService():
         )
         await rabbit_payment_order.publish(
             "payment_order.payment", 
-            data_send.model_dump()
+            data_send.model_dump(mode='json')
         ) # отправка в rabbit оплаты
 
 
@@ -153,7 +161,7 @@ class OrderService():
             price_total_product = cache_product.price / 100 * (100 - cache_product.sale) * cart.count_product
             count_price += round(price_total_product, 2)
 
-            product_schemas.append(item.model_dump())
+            product_schemas.append(item.model_dump(mode="json"))
 
         order = OrderORM(
             uuid_user = uuid_user,
@@ -161,9 +169,17 @@ class OrderService():
             items = product_schemas
         )
         try:
-            await self.order_repo.create_order(order)
-            await self.cart_repo.del_all_product(uuid_user)
+            new_order = await self.order_repo.create_order(order)
+            rabbit_mess = RabbitRequestCatalog(
+                id_order = new_order.id,
+                uuid_user = uuid_user,
+                products = new_order.items
+            )
             await self.db.commit()
+            await rabbit_catalog_order.publish(
+                "catalog_order.deduct_from_stock", 
+                rabbit_mess.model_dump(mode="json")
+            )
         except IntegrityError:
             await self.db.rollback()
             raise HTTPException(status.HTTP_409_CONFLICT, "conflict")
@@ -187,7 +203,7 @@ async def create_order(
 
 # админская ручка где все заказы
 @router.patch("/update_status_order")
-async def update_status_order(
+async def lock_update_status_order(
     order_service: OrderServiceDep,
     data: OrderStatusSchema,
     payload = Depends(is_admin_token)
@@ -196,7 +212,7 @@ async def update_status_order(
 
 
 @router.patch("/update_status_payment")
-async def update_status_payment(
+async def lock_update_status_payment(
     order_service: OrderServiceDep,
     data: PaymentStatusSchema,
     payload = Depends(is_admin_token)
@@ -204,10 +220,20 @@ async def update_status_payment(
     await order_service.update_status_payment(data)
 
 
-@router.get("/list")
-async def get_all_orders(
+@router.post("/pay_order/{id_order}")
+async def pay_for_order(
     order_service: OrderServiceDep,
-    pagination: PaginationSchema,
+    id_order: int,
+    payload = Depends(is_validity_token)
+) -> None:
+    uuid_user = payload.get("uuid")
+    await order_service.pay_for_order(uuid_user=uuid_user, id_order=id_order)
+
+
+@router.get("/list")
+async def lock_get_all_orders(
+    order_service: OrderServiceDep,
+    pagination: PaginationSchema = Depends(),
     payload = Depends(is_admin_token)
 ) -> list[OrderSchema]:
     return await order_service.get_all_orders(pagination)

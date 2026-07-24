@@ -65,3 +65,13 @@ def register_exception_handlers(app: FastAPI):
                 "error_type": "ProductNotFound",
             },
         )
+
+    @app.exception_handler(custom_exception.InsufficientFundsError)
+    async def insufficient_funds_handler(request: Request, exc: Exception):
+        return JSONResponse(
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
+            content={
+                "message": "Ошибка: недостаточно средств.",
+                "error_type": "InsufficientFundsError",
+            },
+        )

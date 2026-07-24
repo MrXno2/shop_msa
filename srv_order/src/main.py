@@ -7,7 +7,7 @@ from srv_order.src.routers.order import router as routers_order
 from core_app.exception_handler import register_exception_handlers
 from srv_order.src.db.session import engine
 from core_app.logger import logger
-from srv_order.src.rabbit.rabbit import rabbit_catalog_order, rabbit_payment_order
+from core_app.rabbit import rabbit_catalog_order, rabbit_payment_order
 from srv_order.src.rabbit.reg_consum import register_consumers_catalog_order, register_consumers_payment_order
 
 

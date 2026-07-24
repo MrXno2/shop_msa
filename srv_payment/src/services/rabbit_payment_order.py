@@ -7,8 +7,8 @@ import aio_pika
 from pydantic import BaseModel, ValidationError
 from sqlalchemy import select, update
 from core_app.logger import logger
-from shop_msa.core_app.exception import InsufficientFundsError
-from shop_msa.srv_payment.src.db.models.wallet import WalletORM
+from core_app.exception import InsufficientFundsError
+from srv_payment.src.db.models.wallet import WalletORM
 from srv_payment.src.db.session import db_session
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError

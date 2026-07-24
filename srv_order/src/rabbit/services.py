@@ -7,13 +7,15 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field, field_validator
 from core_app.security import is_admin_token
 from core_app.exception import ProductNotFound 
-from shop_msa.srv_order.src.routers.order import OrderRepository, PaymentStatusSchema
+from srv_order.src.routers.cart import CartRepository
+from srv_order.src.routers.order import OrderRepository, OrderStatusSchema, PaymentStatusSchema
 from srv_order.src.db.session import db_session
 from srv_order.src.db.models.cart_product_cache import CartProductCacheORM
 from srv_order.src.dependensies import DbDep
 from sqlalchemy.exc import IntegrityError
 import json
 import aio_pika
+from srv_order.src.db.models.order import OrderStatus
 
 
 
@@ -25,6 +27,12 @@ class CartCacheProductSchema(BaseModel):
     price: Decimal
     sale: Decimal
     image_url: str
+
+
+class RabbitRequestCatalog(BaseModel):
+    id_order: int
+    uuid_user: UUID
+    status_order_type: str
 
 
 class CartCacheDeleteSchema(BaseModel):
@@ -67,6 +75,28 @@ class CartProductRepository:
     
 
 class RabbitCatalogOrderService():
+    async def handle_stock_deduction_result(
+        self,
+        message: aio_pika.IncomingMessage,
+    ) -> None:
+        async with db_session() as db:
+            order_repo = OrderRepository(db)
+            cart_repo = CartRepository(db)
+            data = RabbitRequestCatalog.model_validate_json(message.body)
+            data_order = OrderStatusSchema(
+                id_order = data.id_order,
+                status = data.status_order_type
+            )
+            if data.status_order_type == OrderStatus.CANCELLED:
+                # кинуть увомление что заказ отменен
+                ...
+            if data.status_order_type == OrderStatus.CREATED:
+                await cart_repo.del_all_product(data.uuid_user)
+                # кинуть увомление что заказ сформирован
+            await order_repo.update_status_order(data_order)
+            await db.commit()
+
+
     async def create_product(
         self, 
         message: aio_pika.IncomingMessage,

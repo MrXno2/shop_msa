@@ -1,5 +1,5 @@
-from shop_msa.srv_payment.src.services.rabbit_payment_order import RabbitPaymentAuthService, RabbitPaymentOrderService
-from srv_payment.src.rabbit.rabbit import RabbitMain
+from srv_payment.src.services.rabbit_payment_order import RabbitPaymentAuthService, RabbitPaymentOrderService
+from core_app.rabbit import RabbitMain
 from srv_payment.src.db.session import db_session, get_db
 
 

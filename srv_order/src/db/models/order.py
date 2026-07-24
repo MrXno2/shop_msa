@@ -4,7 +4,7 @@ from enum import Enum
 from typing import List
 from pydantic import BaseModel, Field
 from sqlalchemy import JSON, Boolean, DateTime, Enum as SAEnum, Float, Integer, Numeric, func
-from srv_order.src.db.models.base import BaseUUID, Base
+from srv_order.src.db.models.base import Base
 from sqlalchemy.orm import Mapped, mapped_column
 from uuid import UUID
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
@@ -12,6 +12,7 @@ from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 
 class OrderStatus(str, Enum):
     PENDING = "pending"
+    CREATED = "created"
     PROCESSING = "processing"
     SHIPPED = "shipped"
     DELIVERED = "delivered"

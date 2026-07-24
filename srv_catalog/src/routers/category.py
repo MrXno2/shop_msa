@@ -2,7 +2,7 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
@@ -21,6 +21,8 @@ class CategoryRequestSchema(BaseModel):
 
 
 class CategoryResponseSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
     uuid: UUID
     name: str = Field(max_length=255)
     description: str | None = None

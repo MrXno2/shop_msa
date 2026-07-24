@@ -123,7 +123,7 @@ async def get_product_servise(db: DbDep) -> CartService:
 
 
 CartServiceDep = Annotated[CartService, Depends(get_product_servise)]
-
+ 
 
 @router.post("/add/{uuid_product}", status_code=status.HTTP_201_CREATED)
 async def add_product_in_cart(

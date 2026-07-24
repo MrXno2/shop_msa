@@ -5,9 +5,9 @@ from srv_payment.src.db.models.base import Base
 from core_app.exception_handler import register_exception_handlers
 from srv_payment.src.db.session import engine
 from core_app.logger import logger
-from srv_payment.src.rabbit.rabbit import rabbit_payment_order, rabbit_wallet_user
+from core_app.rabbit import rabbit_payment_order, rabbit_payment_auth
 from srv_payment.src.rabbit.reg_consum import register_consumers_payment_order, register_consumers_payment_auth
-from srv_payment.src.routers.deposit import router as router_dep
+from srv_payment.src.routers.wallet import router as router_dep
 
 
 @asynccontextmanager
@@ -16,15 +16,15 @@ async def lifespan(app: FastAPI):
         await conn.run_sync(Base.metadata.create_all)
 
     await register_consumers_payment_order(rabbit_payment_order)
-    await register_consumers_payment_auth(rabbit_wallet_user)
+    await register_consumers_payment_auth(rabbit_payment_auth)
 
-    await rabbit_wallet_user.start()
+    await rabbit_payment_auth.start()
     await rabbit_payment_order.start()
     logger.warning("START service ORDER")
     
     yield
 
-    await rabbit_wallet_user.stop()
+    await rabbit_payment_auth.stop()
     await rabbit_payment_order.stop()
     logger.warning("STOP service ORDER")
 

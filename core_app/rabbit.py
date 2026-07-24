@@ -126,4 +126,8 @@ class RabbitMain:
             await self._connection.close()
 
 
+rabbit_payment_auth = RabbitMain(exchange_name="payment_auth")
+
 rabbit_catalog_order = RabbitMain(exchange_name="catalog_order")
+
+rabbit_payment_order = RabbitMain(exchange_name="payment_order")

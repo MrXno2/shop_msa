@@ -10,7 +10,9 @@ from core_app.exception import ProductNotFound
 from srv_catalog.src.db.models.product import ProductORM
 from srv_catalog.src.dependensies import DbDep
 from sqlalchemy.exc import IntegrityError
-from srv_catalog.src.rabbit.rabbit import rabbit_catalog_order
+from core_app.rabbit import rabbit_catalog_order
+from srv_catalog.src.rabbit.services import RabbitRequestOrderProducts
+from sqlalchemy import CursorResult
 
 
 router = APIRouter(prefix="/product")
@@ -75,6 +77,19 @@ class ProductListResponse(BaseModel):
 class ProductRepository:
     def __init__(self, db: AsyncSession) -> None:
         self.db = db
+
+
+    async def deduct_from_stock(self, product: RabbitRequestOrderProducts) -> ProductORM | None:
+        result = await self.db.execute(
+            update(ProductORM)
+            .where(
+                ProductORM.uuid == product.uuid,
+                ProductORM.stock >= product.count_product
+            )
+            .values(stock = ProductORM.stock - product.count_product)
+            .returning(ProductORM)
+        )
+        return result.scalar_one_or_none()
 
 
     async def get_product_uuid_category(self, uuid_category: UUID) -> ProductORM | None:

@@ -2,12 +2,13 @@ from uuid import UUID, uuid4
 from sqlalchemy import Integer, Uuid
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
-from srv_order.src.db.models.base import Base, BaseUUID
+from srv_order.src.db.models.base import Base
 
 
-class CartORM(BaseUUID):
+class CartORM(Base):
     __tablename__ = "carts_users"
 
+    uuid: Mapped[UUID] = mapped_column(Uuid(), primary_key=True, default=uuid4)
     uuid_user: Mapped[UUID] = mapped_column(
         PG_UUID(as_uuid=True),
         nullable=False,
