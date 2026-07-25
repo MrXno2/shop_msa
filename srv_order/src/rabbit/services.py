@@ -8,28 +8,29 @@ from pydantic import BaseModel, Field, field_validator
 from core_app.security import is_admin_token
 from core_app.exception import ProductNotFound 
 from srv_order.src.routers.cart import CartRepository
-from srv_order.src.routers.order import OrderRepository, OrderStatusSchema, PaymentStatusSchema
+from srv_order.src.routers.order import OrderRepository
+from srv_order.src.schemas import OrderStatusUpdateSchema, PaymentStatusUpdateSchema
 from srv_order.src.db.session import db_session
 from srv_order.src.db.models.cart_product_cache import CartProductCacheORM
 from srv_order.src.dependensies import DbDep
 from sqlalchemy.exc import IntegrityError
 import json
 import aio_pika
-from srv_order.src.db.models.order import OrderStatus
+from srv_order.src.db.models.order import OrderStatusEnum
 
 
 
-class CartCacheProductSchema(BaseModel):
+class ProductCacheSchema(BaseModel):
     model_config = {"from_attributes": True}
 
     uuid: UUID
     name: str
     price: Decimal
-    sale: Decimal
-    image_url: str
+    sale: Decimal | None = None
+    image_url: str | None = None
 
 
-class RabbitRequestCatalog(BaseModel):
+class RabbitStockResultSchema(BaseModel):
     id_order: int
     uuid_user: UUID
     status_order_type: str
@@ -82,17 +83,15 @@ class RabbitCatalogOrderService():
         async with db_session() as db:
             order_repo = OrderRepository(db)
             cart_repo = CartRepository(db)
-            data = RabbitRequestCatalog.model_validate_json(message.body)
-            data_order = OrderStatusSchema(
+            data = RabbitStockResultSchema.model_validate_json(message.body)
+            data_order = OrderStatusUpdateSchema(
                 id_order = data.id_order,
                 status = data.status_order_type
             )
-            if data.status_order_type == OrderStatus.CANCELLED:
-                # кинуть увомление что заказ отменен
+            if data.status_order_type == OrderStatusEnum.CANCELLED:
                 ...
-            if data.status_order_type == OrderStatus.CREATED:
+            if data.status_order_type == OrderStatusEnum.CREATED:
                 await cart_repo.del_all_product(data.uuid_user)
-                # кинуть увомление что заказ сформирован
             await order_repo.update_status_order(data_order)
             await db.commit()
 
@@ -103,7 +102,7 @@ class RabbitCatalogOrderService():
     ) -> None:
         async with db_session() as db:
             product_repo = CartProductRepository(db)
-            data = CartCacheProductSchema.model_validate_json(message.body)
+            data = ProductCacheSchema.model_validate_json(message.body)
             product = CartProductCacheORM(
                 uuid_product = data.uuid,
                 name = data.name,
@@ -140,7 +139,7 @@ class RabbitCatalogOrderService():
     ) -> None:
         async with db_session() as db:
             product_repo = CartProductRepository(db)
-            data = CartCacheProductSchema.model_validate_json(message.body)
+            data = ProductCacheSchema.model_validate_json(message.body)
 
             product = await product_repo.get_product(data.uuid)
             if not product:
@@ -162,6 +161,6 @@ class RabbitPaymentOrderService:
     ) -> None:
         async with db_session() as db:
             order_repo = OrderRepository(db)
-            data = PaymentStatusSchema.model_validate_json(message.body)
+            data = PaymentStatusUpdateSchema.model_validate_json(message.body)
             await order_repo.update_status_payment(data=data)
             await db.commit()

@@ -10,3 +10,4 @@ dist/
 .ruff_cache
 *.log
 .pytest_cache
+**/.vscode/

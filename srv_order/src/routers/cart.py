@@ -11,20 +11,10 @@ from srv_order.src.db.models.cart_product_cache import CartProductCacheORM
 from srv_order.src.db.models.cart_user import CartORM
 from srv_order.src.dependensies import DbDep
 from sqlalchemy.exc import IntegrityError
+from srv_order.src.schemas import CartCacheProductSchema
 
 
 router = APIRouter(prefix="/cart")
-
-
-class CartCacheProductSchema(BaseModel):
-    model_config = {"from_attributes": True}
-
-    uuid: UUID
-    name: str
-    price: Decimal
-    sale: Decimal
-    image_url: str
-    count_product: int
 
 
 class CartRepository:

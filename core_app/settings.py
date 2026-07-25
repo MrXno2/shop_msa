@@ -23,10 +23,11 @@ class Settings(BaseSettings):
 
     RABBIT_URL: str = "amqp://guest:guest@localhost:5672/"
 
-    # db localhost
     POSTGRES_URL_SERV_AUTH: str = "postgresql+asyncpg://postgres:admin@localhost:5432/postgres"
-    POSTGRES_URL_SERV_CART: str = "postgresql+asyncpg://postgres:admin@localhost:5432/postgres"
+    POSTGRES_URL_SERV_ORDER: str = "postgresql+asyncpg://postgres:admin@localhost:5432/postgres"
     POSTGRES_URL_SERV_CATALOG: str = "postgresql+asyncpg://postgres:admin@localhost:5432/postgres"
+    POSTGRES_URL_SERV_PAYMENT: str = "postgresql+asyncpg://postgres:admin@localhost:5432/postgres"
+    POSTGRES_URL_SERV_NOTIFICATION: str = "postgresql+asyncpg://postgres:admin@localhost:5432/postgres"
 
     ADMIN_PANEL_USER: str = "admin"
     ADMIN_PANEL_PASSWORD: str = "qwerty"

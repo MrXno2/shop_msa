@@ -17,7 +17,7 @@ from srv_payment.src.services.rabbit_payment_order import WalletRepository
 router = APIRouter(prefix="/payment")
 
 
-class DepositeWalletSchema(BaseModel):
+class DepositWalletSchema(BaseModel):
     uuid_user: UUID
     dep_price: Decimal
 
@@ -27,7 +27,7 @@ class WalletService:
         self.db = db
         self.wallet_repo = WalletRepository(db)
 
-    async def deposit_balance(self, data_req: DepositeWalletSchema):
+    async def deposit_balance(self, data_req: DepositWalletSchema):
         result = await self.wallet_repo.deposit_wallet(
             uuid_user=data_req.uuid_user,
             deposit_price=data_req.dep_price
@@ -52,15 +52,14 @@ WalletServiceDep = Annotated[WalletService, Depends(get_wallet_service)]
 @router.post("/deposit")
 async def lock_deposit_balance_user(
     wallet_service: WalletServiceDep,
-    data_req: DepositeWalletSchema,
+    data_req: DepositWalletSchema,
     payload = Depends(is_admin_token)
 ) -> None:
     await wallet_service.deposit_balance(data_req)
 
 
-@router.get("/balance/{uuid_user}")
+@router.get("/balance")
 async def get_balance(
-    uuid_user: UUID,
     wallet_service: WalletServiceDep,
     payload = Depends(is_validity_token)
 ) -> Decimal:

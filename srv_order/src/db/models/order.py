@@ -8,15 +8,7 @@ from srv_order.src.db.models.base import Base
 from sqlalchemy.orm import Mapped, mapped_column
 from uuid import UUID
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
-
-
-class OrderStatus(str, Enum):
-    PENDING = "pending"
-    CREATED = "created"
-    PROCESSING = "processing"
-    SHIPPED = "shipped"
-    DELIVERED = "delivered"
-    CANCELLED = "cancelled"
+from core_app.enums import OrderStatusEnum
 
 
 class OrderItemSchema(BaseModel):
@@ -41,10 +33,10 @@ class OrderORM(Base):
         unique=False,
         index=True
     )
-    status_order: Mapped[OrderStatus] = mapped_column(
-        SAEnum(OrderStatus, name="order_status_enum"),
+    status_order: Mapped[OrderStatusEnum] = mapped_column(
+        SAEnum(OrderStatusEnum, name="order_status_enum"),
         nullable=False,
-        default=OrderStatus.PENDING
+        default=OrderStatusEnum.PENDING
     )
     status_payment: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 

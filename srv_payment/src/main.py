@@ -20,13 +20,13 @@ async def lifespan(app: FastAPI):
 
     await rabbit_payment_auth.start()
     await rabbit_payment_order.start()
-    logger.warning("START service ORDER")
+    logger.warning("START service PAYMENT")
     
     yield
 
     await rabbit_payment_auth.stop()
     await rabbit_payment_order.stop()
-    logger.warning("STOP service ORDER")
+    logger.warning("STOP service PAYMENT")
 
 
 app = FastAPI(lifespan=lifespan)

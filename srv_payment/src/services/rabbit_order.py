@@ -1,6 +1,6 @@
 import aio_pika
 from sqlalchemy.ext.asyncio import AsyncSession
-from shop_msa.srv_payment.src.db.session import db_session
+from srv_payment.src.db.session import db_session
 
 
 class RabbitOrderRepository:

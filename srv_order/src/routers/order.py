@@ -8,53 +8,23 @@ from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 from core_app.security import is_admin_token, is_validity_token
-from srv_order.src.db.models.order import OrderORM, OrderStatus
+from srv_order.src.db.models.order import OrderORM, OrderStatusEnum
 from srv_order.src.dependensies import DbDep
-from srv_order.src.routers.cart import CartRepository, CartCacheProductSchema
+from srv_order.src.routers.cart import CartRepository
+from srv_order.src.schemas import (
+    CartCacheProductSchema,
+    PaginationSchema,
+    OrderStatusUpdateSchema,
+    PaymentStatusUpdateSchema,
+    OrderResponseSchema,
+    RabbitSendOrderPaymentSchema,
+    RabbitOrderToCatalogSchema,
+)
 from core_app.rabbit import rabbit_payment_order, rabbit_catalog_order
 
 
 
 router = APIRouter(prefix="/order")
-
-
-class PaginationSchema(BaseModel):
-    offset: int
-    limit: int
-
-
-class PaymentStatusSchema(BaseModel):
-    id_order: int
-    payment_success: bool
-    error_message: str | None = None
-
-class OrderStatusSchema(BaseModel):
-    id_order: int
-    status: str
-
-class RabbitSendOrderPaymentSchema(BaseModel):
-    uuid_user: UUID
-    id_order: int
-    total_price: Decimal
-
-
-class OrderSchema(BaseModel):
-    """Схема заказа для ответа API"""
-    model_config = ConfigDict(from_attributes=True)
-    
-    id: int
-    uuid_user: UUID
-    status_order: str
-    status_payment: bool
-    created_at: datetime
-    total_price: Decimal
-    items: List[dict]
-
-
-class RabbitRequestCatalog(BaseModel):
-    id_order: int
-    uuid_user: UUID
-    products: List[dict]
 
 
 class OrderRepository:
@@ -66,14 +36,14 @@ class OrderRepository:
         await self.db.flush()
         return order
 
-    async def update_status_order(self, data: OrderStatusSchema) -> None:
+    async def update_status_order(self, data: OrderStatusUpdateSchema) -> None:
         await self.db.execute(
             update(OrderORM)
             .where(OrderORM.id == data.id_order)
             .values(status_order = data.status)
         )
 
-    async def update_status_payment(self, data: PaymentStatusSchema) -> None:
+    async def update_status_payment(self, data: PaymentStatusUpdateSchema) -> None:
         await self.db.execute(
             update(OrderORM)
             .where(OrderORM.id == data.id_order)
@@ -112,19 +82,17 @@ class OrderService():
     async def get_all_orders(
         self, 
         pagination: PaginationSchema
-    ) -> list[OrderSchema]:
+    ) -> list[OrderResponseSchema]:
         result = await self.order_repo.get_all_orders(pagination)
-        return [OrderSchema.model_validate(val) for val in result]
+        return [OrderResponseSchema.model_validate(val) for val in result]
 
-    async def update_status_order(self, data: OrderStatusSchema) -> None:
+    async def update_status_order(self, data: OrderStatusUpdateSchema) -> None:
         await self.order_repo.update_status_order(data)
         await self.db.commit()
-        # отравка уведы через брокер
 
-    async def update_status_payment(self, data: PaymentStatusSchema) -> None:
+    async def update_status_payment(self, data: PaymentStatusUpdateSchema) -> None:
         await self.order_repo.update_status_payment(data)
         await self.db.commit()
-        # отравка уведы через брокер
 
     async def pay_for_order(self, uuid_user: UUID, id_order: int) -> None:
         order = await self.order_repo.get_order(uuid_user=uuid_user, id_order=id_order)
@@ -138,7 +106,7 @@ class OrderService():
         await rabbit_payment_order.publish(
             "payment_order.payment", 
             data_send.model_dump(mode='json')
-        ) # отправка в rabbit оплаты
+        )
 
 
     async def create_order(self, uuid_user: UUID):
@@ -147,7 +115,7 @@ class OrderService():
             raise HTTPException(status.HTTP_404_NOT_FOUND, "Card 0 item")
 
         product_schemas = []
-        count_price = 0
+        count_price = Decimal("0.00")
         for cache_product, cart in card_user:
 
             item = CartCacheProductSchema(
@@ -158,8 +126,9 @@ class OrderService():
                 image_url=cache_product.image_url,
                 count_product=cart.count_product
             )
-            price_total_product = cache_product.price / 100 * (100 - cache_product.sale) * cart.count_product
-            count_price += round(price_total_product, 2)
+            sale = cache_product.sale or 0
+            price_total_product = cache_product.price / 100 * (100 - sale) * cart.count_product
+            count_price += price_total_product.quantize(Decimal("0.01"))
 
             product_schemas.append(item.model_dump(mode="json"))
 
@@ -170,7 +139,7 @@ class OrderService():
         )
         try:
             new_order = await self.order_repo.create_order(order)
-            rabbit_mess = RabbitRequestCatalog(
+            rabbit_mess = RabbitOrderToCatalogSchema(
                 id_order = new_order.id,
                 uuid_user = uuid_user,
                 products = new_order.items
@@ -191,7 +160,6 @@ async def get_order_service(db: DbDep) -> OrderService:
 OrderServiceDep = Annotated[OrderService, Depends(get_order_service)]
 
 
-# просто берем uuid из токена и делаем заказ по его корзине
 @router.post("/create")
 async def create_order(
     order_service: OrderServiceDep,
@@ -201,11 +169,10 @@ async def create_order(
     await order_service.create_order(uuid_user)
 
 
-# админская ручка где все заказы
 @router.patch("/update_status_order")
 async def lock_update_status_order(
     order_service: OrderServiceDep,
-    data: OrderStatusSchema,
+    data: OrderStatusUpdateSchema,
     payload = Depends(is_admin_token)
 ) -> None:
     await order_service.update_status_order(data)
@@ -214,7 +181,7 @@ async def lock_update_status_order(
 @router.patch("/update_status_payment")
 async def lock_update_status_payment(
     order_service: OrderServiceDep,
-    data: PaymentStatusSchema,
+    data: PaymentStatusUpdateSchema,
     payload = Depends(is_admin_token)
 ) -> None:
     await order_service.update_status_payment(data)
@@ -235,7 +202,5 @@ async def lock_get_all_orders(
     order_service: OrderServiceDep,
     pagination: PaginationSchema = Depends(),
     payload = Depends(is_admin_token)
-) -> list[OrderSchema]:
+) -> list[OrderResponseSchema]:
     return await order_service.get_all_orders(pagination)
-
-

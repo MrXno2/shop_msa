@@ -2,7 +2,6 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
@@ -10,22 +9,10 @@ from core_app.security import is_admin_token
 from srv_catalog.src.db.models.category import CategoryORM
 from srv_catalog.src.dependensies import DbDep
 from srv_catalog.src.routers.product import ProductRepository
+from srv_catalog.src.schemas import CategoryRequestSchema, CategoryResponseSchema
 
 
 router = APIRouter(prefix="/category")
-
-
-class CategoryRequestSchema(BaseModel):
-    name: str = Field(max_length=255)
-    description: str | None = None
-
-
-class CategoryResponseSchema(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-    
-    uuid: UUID
-    name: str = Field(max_length=255)
-    description: str | None = None
 
 
 class CategoryRepository:

@@ -2,7 +2,7 @@ from decimal import Decimal
 import json
 from uuid import UUID
 from xml.dom.pulldom import parseString
-from srv_payment.src.rabbit.rabbit import rabbit_payment_order
+from core_app.rabbit import rabbit_payment_order
 import aio_pika
 from pydantic import BaseModel, ValidationError
 from sqlalchemy import select, update
@@ -113,7 +113,7 @@ class RabbitPaymentOrderService:
                     await db.commit()
                 await rabbit_payment_order.publish(
                     "payment_order.update_status_payment", 
-                    data_response.model_dump()
+                    data_response.model_dump(mode="json")
                 )
             except ValidationError as e:
                 logger.critical(

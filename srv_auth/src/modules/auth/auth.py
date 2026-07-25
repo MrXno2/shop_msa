@@ -81,7 +81,7 @@ class AuthRegisterReqSchema(BaseModel):
         return self
     
 
-class UserDataWalletSchema(BaseModel):
+class RabbitAuthCreatedEventSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     
     uuid_user: UUID
@@ -132,7 +132,7 @@ class AuthService():
             # запрос в бд
             await self.auth_repo.create_user(new_user)
             await self.db.commit()
-            event = UserDataWalletSchema(
+            event = RabbitAuthCreatedEventSchema(
                 uuid_user = new_user.uuid,
                 number = new_user.number
             )

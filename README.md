@@ -63,6 +63,9 @@ balance: Decimal = 0
 перенести Rabbit в общий core_app и вынести все подключения в него
 
 
+docker run -d --name rabbitmq -p 5672:5672 -p 15672:15672 -e RABBITMQ_DEFAULT_USER=guest -e RABBITMQ_DEFAULT_PASS=guest rabbitmq:3-management
+
+
 docker run --name my-postgres -e POSTGRES_PASSWORD=admin -p 5432:5432 -d postgres:16-alpine
 
 poetry add fastapi uvicorn sqlalchemy pydantic pydantic_settings asyncpg pyjwt aio-pika

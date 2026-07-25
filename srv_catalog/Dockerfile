@@ -11,4 +11,4 @@ COPY srv_catalog/src ./srv_catalog/src
 WORKDIR /app/srv_catalog
 RUN poetry install --only main --no-root
 ENV PYTHONPATH=/app
-CMD ["uvicorn", "srv_catalog.src.main:app", "--host", "0.0.0.0", "--port", "8001"]
+CMD ["uvicorn", "srv_catalog.src.main:app", "--host", "0.0.0.0", "--port", "8002"]
