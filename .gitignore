@@ -11,3 +11,4 @@ dist/
 *.log
 .pytest_cache
 **/.vscode/
+AGENTS.md

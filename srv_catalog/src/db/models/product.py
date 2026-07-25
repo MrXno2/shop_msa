@@ -1,7 +1,6 @@
-from datetime import datetime
 from decimal import Decimal
 from uuid import UUID
-from sqlalchemy import DateTime, ForeignKey, Integer, Numeric, String, Text, Uuid, func
+from sqlalchemy import Integer, Numeric, String, Text
 from srv_catalog.src.db.models.base import Base
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID

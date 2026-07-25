@@ -1,9 +1,8 @@
 from datetime import datetime
 from decimal import Decimal
-from enum import Enum
 from typing import List
 from pydantic import BaseModel, Field
-from sqlalchemy import JSON, Boolean, DateTime, Enum as SAEnum, Float, Integer, Numeric, func
+from sqlalchemy import JSON, Boolean, DateTime, Enum as SAEnum, Integer, Numeric, func
 from srv_order.src.db.models.base import Base
 from sqlalchemy.orm import Mapped, mapped_column
 from uuid import UUID

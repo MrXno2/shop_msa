@@ -2,8 +2,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from core_app.middleware import set_cors
 from srv_order.src.db.models.base import Base
-from srv_order.src.routers.cart import router as routers_cart
-from srv_order.src.routers.order import router as routers_order
+from srv_order.src.modules.cart.routers import router as routers_cart
+from srv_order.src.modules.order.routers import router as routers_order
 from core_app.exception_handler import register_exception_handlers
 from srv_order.src.db.session import engine
 from core_app.logger import logger
@@ -38,3 +38,7 @@ set_cors(app=app)
 
 app.include_router(routers_cart)
 app.include_router(routers_order)
+
+@app.get("/health")
+async def health():
+    return {"status": "ok"}

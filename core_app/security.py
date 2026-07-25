@@ -35,7 +35,7 @@ def set_cookie(name_token: str, response: Response, token: str) -> None:
         value=token,
         httponly=True,
         secure=False,
-        samesite="lax",  # 👈 Или "none"
-        domain="127.0.0.1",  # 👈 Добавь явно домен
-        path="/",  # 👈 Чтобы кука была доступна на всех путях
+        samesite="lax",
+        domain=settings.JWT_COOKIE_DOMAIN,
+        path="/",
     )

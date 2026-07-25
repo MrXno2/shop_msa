@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from core_app.middleware import set_cors
 from srv_auth.src.db.models.base import Base
-from srv_auth.src.routers.auth import router as routers_auth
+from srv_auth.src.modules.auth.routers import router as routers_auth
 from core_app.exception_handler import register_exception_handlers
 from srv_auth.src.db.session import engine
 from core_app.logger import logger
@@ -28,3 +28,7 @@ register_exception_handlers(app=app)
 set_cors(app=app)
 
 app.include_router(routers_auth)
+
+@app.get("/health")
+async def health():
+    return {"status": "ok"}

@@ -1,7 +1,5 @@
-from srv_order.src.routers.order import OrderService
 from srv_order.src.rabbit.services import RabbitCatalogOrderService, RabbitPaymentOrderService
 from core_app.rabbit import RabbitMain
-from srv_order.src.db.session import db_session, get_db
 
 
 async def register_consumers_catalog_order(

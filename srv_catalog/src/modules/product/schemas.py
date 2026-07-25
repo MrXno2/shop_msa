@@ -1,10 +1,10 @@
 from decimal import Decimal
-from enum import Enum
-from typing import List
+from typing import Literal
 from uuid import UUID
-
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+
+SortField = Literal["name", "price", "stock"]
 
 
 class ProductResponseSchema(BaseModel):
@@ -50,7 +50,7 @@ class ProductListQuerySchema(BaseModel):
     in_stock: bool | None = None
     on_sale: bool | None = None
     search: str | None = Field(None, max_length=100)
-    sort_by: str = Field(default="name")
+    sort_by: SortField = "name"
     sort_order: str = Field(default="desc", pattern=r"^(asc|desc)$")
     limit: int = Field(default=20, ge=1, le=100)
     offset: int = Field(default=0, ge=0)
@@ -72,39 +72,3 @@ class ProductListResponseSchema(BaseModel):
     total: int
     limit: int
     offset: int
-
-
-class CategoryRequestSchema(BaseModel):
-    name: str = Field(max_length=255)
-    description: str | None = None
-
-
-class CategoryResponseSchema(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    uuid: UUID
-    name: str = Field(max_length=255)
-    description: str | None = None
-
-
-class RabbitRequestOrderProductsSchema(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    uuid: UUID
-    name: str
-    price: Decimal
-    sale: Decimal | None = None
-    image_url: str | None = None
-    count_product: int
-
-
-class RabbitRequestOrderSchema(BaseModel):
-    id_order: int
-    uuid_user: UUID
-    products: List[RabbitRequestOrderProductsSchema]
-
-
-class RabbitResponseCatalogSchema(BaseModel):
-    id_order: int
-    uuid_user: UUID
-    status_order_type: str

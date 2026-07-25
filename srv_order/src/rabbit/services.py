@@ -1,78 +1,19 @@
-from decimal import Decimal
-from typing import Annotated
-from uuid import UUID
-from sqlalchemy import and_, asc, delete, desc, func, or_, select, update
-from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, Field, field_validator
-from core_app.security import is_admin_token
 from core_app.exception import ProductNotFound 
-from srv_order.src.routers.cart import CartRepository
-from srv_order.src.routers.order import OrderRepository
-from srv_order.src.schemas import OrderStatusUpdateSchema, PaymentStatusUpdateSchema
+from srv_order.src.modules.cart.repository import CartRepository
+from srv_order.src.modules.order.repository import OrderRepository
+from srv_order.src.modules.order.schemas import OrderStatusUpdateSchema, PaymentStatusUpdateSchema
 from srv_order.src.db.session import db_session
 from srv_order.src.db.models.cart_product_cache import CartProductCacheORM
-from srv_order.src.dependensies import DbDep
 from sqlalchemy.exc import IntegrityError
-import json
 import aio_pika
 from srv_order.src.db.models.order import OrderStatusEnum
-
-
-
-class ProductCacheSchema(BaseModel):
-    model_config = {"from_attributes": True}
-
-    uuid: UUID
-    name: str
-    price: Decimal
-    sale: Decimal | None = None
-    image_url: str | None = None
-
-
-class RabbitStockResultSchema(BaseModel):
-    id_order: int
-    uuid_user: UUID
-    status_order_type: str
-
-
-class CartCacheDeleteSchema(BaseModel):
-    model_config = {"from_attributes": True}
-
-    uuid_product: UUID
-
-
-class CartProductRepository:
-    def __init__(self, db: AsyncSession) -> None:
-        self.db = db
-    
-
-    async def create_product(self, data_product: CartProductCacheORM) -> None:
-        self.db.add(data_product)
-    
-
-    async def del_product(self, uuid_product: UUID) -> None:
-        await self.db.execute(
-            delete(CartProductCacheORM)
-            .where(CartProductCacheORM.uuid_product == uuid_product)
-        )
-
-
-    async def full_update_product(self, req_data: dict) -> None:
-        await self.db.execute(
-            update(CartProductCacheORM)
-            .where(CartProductCacheORM.uuid_product == req_data["uuid_product"])
-            .values(**req_data)
-        )
-
-
-    async def get_product(self, uuid_product: UUID) -> CartProductCacheORM | None:
-        product = await self.db.execute(
-            select(CartProductCacheORM)
-            .where(CartProductCacheORM.uuid_product == uuid_product)
-            .limit(1)
-        )
-        return product.scalar_one_or_none()
+from srv_order.src.rabbit.schemas import (
+    CartCacheDeleteSchema, 
+    ProductCacheSchema, 
+    RabbitPaymentStatusUpdateSchema, 
+    RabbitStockResultSchema
+)
+from srv_order.src.rabbit.repositories import RabbitCartProductRepository
     
 
 class RabbitCatalogOrderService():
@@ -101,7 +42,7 @@ class RabbitCatalogOrderService():
         message: aio_pika.IncomingMessage,
     ) -> None:
         async with db_session() as db:
-            product_repo = CartProductRepository(db)
+            product_repo = RabbitCartProductRepository(db)
             data = ProductCacheSchema.model_validate_json(message.body)
             product = CartProductCacheORM(
                 uuid_product = data.uuid,
@@ -115,8 +56,7 @@ class RabbitCatalogOrderService():
                 await db.commit()
             except IntegrityError:
                 await db.rollback()
-            
-            print(data)
+
 
 
     async def del_product(
@@ -124,13 +64,11 @@ class RabbitCatalogOrderService():
         message: aio_pika.IncomingMessage
     ) -> None:
         async with db_session() as db:
-            product_repo = CartProductRepository(db)
+            product_repo = RabbitCartProductRepository(db)
             data = CartCacheDeleteSchema.model_validate_json(message.body)
 
             await product_repo.del_product(data.uuid_product)
             await db.commit()
-
-            print(data)
 
 
     async def full_update_product(
@@ -138,7 +76,7 @@ class RabbitCatalogOrderService():
         message: aio_pika.IncomingMessage,
     ) -> None:
         async with db_session() as db:
-            product_repo = CartProductRepository(db)
+            product_repo = RabbitCartProductRepository(db)
             data = ProductCacheSchema.model_validate_json(message.body)
 
             product = await product_repo.get_product(data.uuid)
@@ -151,8 +89,6 @@ class RabbitCatalogOrderService():
             await product_repo.full_update_product(new_data)
             await db.commit()
 
-            print(data)
-
 
 class RabbitPaymentOrderService:
     async def update_status_payment(
@@ -161,6 +97,10 @@ class RabbitPaymentOrderService:
     ) -> None:
         async with db_session() as db:
             order_repo = OrderRepository(db)
-            data = PaymentStatusUpdateSchema.model_validate_json(message.body)
-            await order_repo.update_status_payment(data=data)
+            data = RabbitPaymentStatusUpdateSchema.model_validate_json(message.body)
+            data_to_repo = PaymentStatusUpdateSchema(
+                id_order = data.id_order,
+                payment_success = data.payment_success
+            )
+            await order_repo.update_status_payment(data=data_to_repo)
             await db.commit()

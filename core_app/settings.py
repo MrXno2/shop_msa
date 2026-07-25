@@ -20,6 +20,7 @@ class Settings(BaseSettings):
 
     JWT_SECRET_KEY: str = "dopustim_pass_very_secret_key"
     JWT_ACCESS_TOKEN_EXPIRES_SECONDS: int = 36000
+    JWT_COOKIE_DOMAIN: str = "127.0.0.1"
 
     RABBIT_URL: str = "amqp://guest:guest@localhost:5672/"
 

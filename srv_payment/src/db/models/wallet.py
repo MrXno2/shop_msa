@@ -1,7 +1,5 @@
 from decimal import Decimal
-
 from sqlalchemy import Numeric, String
-
 from srv_payment.src.db.models.base import Base
 from sqlalchemy.orm import Mapped, mapped_column
 from uuid import UUID

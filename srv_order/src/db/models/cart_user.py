@@ -1,6 +1,6 @@
 from uuid import UUID, uuid4
 from sqlalchemy import Integer, Uuid
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from srv_order.src.db.models.base import Base
 

@@ -16,6 +16,11 @@ source srv_payment/.venv/bin/activate
 uvicorn srv_payment.src.main:app --port 8004 --reload
 
 
+поправить потом
+secure=False в cookies:
+Означает что cookie будет отправляться и по HTTP, и по HTTPS. Если secure=True — cookie отправляется ТОЛЬКО по HTTPS. В продакшене должно быть True, на localhost для пет-проекта False — ок.
+
+
 
 написать сохранение кэша в корзине,
 написать ручки для корзины.

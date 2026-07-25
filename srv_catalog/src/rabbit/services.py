@@ -1,9 +1,9 @@
 from core_app.rabbit import rabbit_catalog_order
 import aio_pika
 from srv_catalog.src.db.session import db_session
-from srv_catalog.src.routers.product import ProductRepository
+from srv_catalog.src.modules.product.repository import ProductRepository
 from core_app.enums import OrderStatusEnum
-from srv_catalog.src.schemas import (
+from srv_catalog.src.rabbit.schemas import (
     RabbitRequestOrderSchema,
     RabbitResponseCatalogSchema,
 )

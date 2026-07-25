@@ -4,8 +4,6 @@ from enum import Enum
 from sqlalchemy import DateTime, Integer, Numeric, String, func, Enum as SAEnum
 from srv_payment.src.db.models.base import Base
 from sqlalchemy.orm import Mapped, mapped_column
-from uuid import UUID
-from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 
 
 class TransactionType(str, Enum):

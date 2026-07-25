@@ -2,19 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import List
 from uuid import UUID
-
 from pydantic import BaseModel, ConfigDict
-
-
-class CartCacheProductSchema(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    uuid: UUID
-    name: str
-    price: Decimal
-    sale: Decimal | None = None
-    image_url: str | None = None
-    count_product: int
 
 
 class PaginationSchema(BaseModel):
@@ -30,7 +18,6 @@ class OrderStatusUpdateSchema(BaseModel):
 class PaymentStatusUpdateSchema(BaseModel):
     id_order: int
     payment_success: bool
-    error_message: str | None = None
 
 
 class OrderResponseSchema(BaseModel):
@@ -43,15 +30,3 @@ class OrderResponseSchema(BaseModel):
     created_at: datetime
     total_price: Decimal
     items: List[dict]
-
-
-class RabbitSendOrderPaymentSchema(BaseModel):
-    uuid_user: UUID
-    id_order: int
-    total_price: Decimal
-
-
-class RabbitOrderToCatalogSchema(BaseModel):
-    id_order: int
-    uuid_user: UUID
-    products: List[dict]
