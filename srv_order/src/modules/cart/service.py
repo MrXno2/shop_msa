@@ -1,15 +1,7 @@
-from decimal import Decimal
-from typing import Annotated
 from uuid import UUID
-from sqlalchemy import and_, asc, delete, desc, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, Field, field_validator
-from core_app.security import is_admin_token, is_validity_token
-from core_app.exception import ProductNotFound 
-from srv_order.src.db.models.cart_product_cache import CartProductCacheORM
+from fastapi import HTTPException, status
 from srv_order.src.db.models.cart_user import CartORM
-from srv_order.src.dependensies import DbDep
 from sqlalchemy.exc import IntegrityError
 from srv_order.src.modules.cart.repository import CartRepository
 from srv_order.src.rabbit.schemas import CartCacheProductSchema

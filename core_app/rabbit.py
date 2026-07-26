@@ -131,3 +131,5 @@ rabbit_payment_auth = RabbitMain(exchange_name="payment_auth")
 rabbit_catalog_order = RabbitMain(exchange_name="catalog_order")
 
 rabbit_payment_order = RabbitMain(exchange_name="payment_order")
+
+rabbit_all_notification = RabbitMain(exchange_name="all_notification")

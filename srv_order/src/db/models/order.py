@@ -10,13 +10,6 @@ from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from core_app.enums import OrderStatusEnum
 
 
-class OrderItemSchema(BaseModel):
-    uuid_product: UUID
-    name: str
-    price: float = Field(ge=0)
-    quantity: int = Field(ge=1, default=1)
-
-
 class OrderORM(Base):
     __tablename__ = "orders_users"
 

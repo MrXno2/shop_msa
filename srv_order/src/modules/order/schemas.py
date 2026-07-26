@@ -2,12 +2,12 @@ from datetime import datetime
 from decimal import Decimal
 from typing import List
 from uuid import UUID
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class PaginationSchema(BaseModel):
-    offset: int = 0
-    limit: int = 20
+    limit: int = Field(default=20, ge=1, le=100)
+    offset: int = Field(default=0, ge=0)
 
 
 class OrderStatusUpdateSchema(BaseModel):

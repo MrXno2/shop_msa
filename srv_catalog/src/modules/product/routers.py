@@ -49,7 +49,7 @@ async def lock_full_update_product(
     await product_service.full_update_product(req_data=req_data)
 
 
-@router.delete("/delete/{uuid_product}", status_code=status.HTTP_200_OK)
+@router.delete("/delete/{uuid_product}", status_code=status.HTTP_204_NO_CONTENT)
 async def lock_delete_product(
     uuid_product: UUID,
     product_service: ProductServiceDep,

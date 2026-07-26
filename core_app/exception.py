@@ -1,38 +1,38 @@
-class BaseExceptionApp(Exception):
+class AppException(Exception):
     """Base class customs error ."""
     pass
 
 
-class UserNotFound(BaseExceptionApp):
+class UserNotFound(AppException):
     """User not found ."""
     pass
 
 
-class UserPhoneAlreadyExists(BaseExceptionApp):
+class UserPhoneAlreadyExists(AppException):
     """User Phone Already Exists ."""
     pass
 
 
-class UserEmailAlreadyExists(BaseExceptionApp):
+class UserEmailAlreadyExists(AppException):
     """User Email Already Exists ."""
     pass 
 
 
-class InvalidPassword(BaseExceptionApp):
+class InvalidPassword(AppException):
     """Invalid Password ."""
     pass
 
 
-class NotAdminError(BaseExceptionApp):
+class NotAdminError(AppException):
     """Not Admin Error ."""
     pass
 
 
-class ProductNotFound(BaseExceptionApp):
+class ProductNotFound(AppException):
     """Product Not Found ."""
     pass
 
 
-class InsufficientFundsError(BaseExceptionApp):
+class InsufficientFundsError(AppException):
     """InsufficientFundsError ."""
     pass

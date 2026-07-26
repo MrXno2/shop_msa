@@ -1,14 +1,14 @@
 from datetime import datetime
 from decimal import Decimal
-from enum import Enum
-from sqlalchemy import DateTime, Integer, Numeric, String, func, Enum as SAEnum
+from typing import Literal
+from uuid import UUID
+from sqlalchemy import DateTime, Integer, Numeric, String, func
 from srv_payment.src.db.models.base import Base
 from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 
 
-class TransactionType(str, Enum):
-    PAYMENT = "payment"
-    DEPOSITED = "deposited"
+TransactionType = Literal["payment", "deposited"]
 
 
 class HistoryWalletORM(Base):
@@ -19,13 +19,19 @@ class HistoryWalletORM(Base):
         autoincrement=True,
         primary_key=True
     )
+    uuid_user: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
+        nullable=False,
+        unique=False,
+        index=True,
+    )
     transaction_time: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
         server_default=func.now()
     )
     transaction_type: Mapped[TransactionType] = mapped_column(
-        SAEnum(TransactionType, name="transactionstatus_enum"),
+        String(20),
         nullable=False,
     )
     amount: Mapped[Decimal] = mapped_column(

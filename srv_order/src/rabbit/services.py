@@ -9,11 +9,14 @@ import aio_pika
 from srv_order.src.db.models.order import OrderStatusEnum
 from srv_order.src.rabbit.schemas import (
     CartCacheDeleteSchema, 
-    ProductCacheSchema, 
+    ProductCacheSchema,
+    RabbitAddNotificationSchema, 
     RabbitPaymentStatusUpdateSchema, 
     RabbitStockResultSchema
 )
 from srv_order.src.rabbit.repositories import RabbitCartProductRepository
+from core_app.messages_notification import messages
+from core_app.rabbit import rabbit_all_notification
     
 
 class RabbitCatalogOrderService():
@@ -29,12 +32,21 @@ class RabbitCatalogOrderService():
                 id_order = data.id_order,
                 status = data.status_order_type
             )
+            notif = RabbitAddNotificationSchema(
+                uuid_user=data.uuid_user,
+                title_notification=f"{messages.NAME_ORDER} {data.id_order}",
+                message_notification=messages.DESC_ORDER_CREATED
+            )
             if data.status_order_type == OrderStatusEnum.CANCELLED:
-                ...
+                notif.message_notification = messages.DESC_ORDER_CANCELED
             if data.status_order_type == OrderStatusEnum.CREATED:
                 await cart_repo.del_all_product(data.uuid_user)
             await order_repo.update_status_order(data_order)
             await db.commit()
+            await rabbit_all_notification.publish(
+                "all_notification.add", 
+                notif.model_dump(mode='json')
+            )
 
 
     async def create_product(

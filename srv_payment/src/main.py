@@ -7,7 +7,7 @@ from srv_payment.src.db.session import engine
 from core_app.logger import logger
 from core_app.rabbit import rabbit_payment_order, rabbit_payment_auth
 from srv_payment.src.rabbit.reg_consum import register_consumers_payment_order, register_consumers_payment_auth
-from srv_payment.src.modules.wallet.routers import router as router_dep
+from srv_payment.src.modules.wallet.routers import router as router_wallet
 
 
 @asynccontextmanager
@@ -35,7 +35,7 @@ register_exception_handlers(app=app)
 
 set_cors(app=app)
 
-app.include_router(router_dep)
+app.include_router(router_wallet)
 
 @app.get("/health")
 async def health():

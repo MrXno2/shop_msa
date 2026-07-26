@@ -15,6 +15,13 @@ class RabbitRequestOrderPaymentSchema(BaseModel):
 
 
 class RabbitResponseOrderPaymentSchema(BaseModel):
+    uuid_user: UUID
     id_order: int
     payment_success: bool
     error_message: str | None = None
+
+
+class RabbitAddNotificationSchema(BaseModel):
+    uuid_user: UUID
+    title_notification: str
+    message_notification: str

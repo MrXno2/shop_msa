@@ -30,6 +30,7 @@ class RabbitOrderToCatalogSchema(BaseModel):
 
 
 class RabbitPaymentStatusUpdateSchema(BaseModel):
+    uuid_user: UUID
     id_order: int
     payment_success: bool
     error_message: str | None = None
@@ -55,3 +56,9 @@ class CartCacheDeleteSchema(BaseModel):
     model_config = {"from_attributes": True}
 
     uuid_product: UUID
+
+
+class RabbitAddNotificationSchema(BaseModel):
+    uuid_user: UUID
+    title_notification: str
+    message_notification: str

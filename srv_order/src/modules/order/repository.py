@@ -18,12 +18,14 @@ class OrderRepository:
         await self.db.flush()
         return order
 
-    async def update_status_order(self, data: OrderStatusUpdateSchema) -> None:
-        await self.db.execute(
+    async def update_status_order(self, data: OrderStatusUpdateSchema) -> OrderORM | None:
+        result = await self.db.execute(
             update(OrderORM)
             .where(OrderORM.id == data.id_order)
             .values(status_order = data.status)
+            .returning(OrderORM)
         )
+        return result.scalar_one_or_none()
 
     async def update_status_payment(self, data: PaymentStatusUpdateSchema) -> None:
         await self.db.execute(
