@@ -12,9 +12,6 @@ from srv_notification.src.modules.notification.routers import router as router_n
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
     await register_consumers_all_notification(rabbit_all_notification)
 
     await rabbit_all_notification.start()

@@ -5,15 +5,41 @@ Shop Microservices Architecture. Pet progect &lt;3
 
 source srv_auth/.venv/bin/activate
 uvicorn srv_auth.src.main:app --port 8001 --reload
+alembic -c srv_auth/alembic.ini revision --autogenerate -m "create_tables" --rev-id 0001
 
 source srv_catalog/.venv/bin/activate
 uvicorn srv_catalog.src.main:app --port 8002 --reload
+alembic -c srv_catalog/alembic.ini revision --autogenerate -m "create_tables" --rev-id 0001
 
 source srv_order/.venv/bin/activate
 uvicorn srv_order.src.main:app --port 8003 --reload
+alembic -c srv_order/alembic.ini revision --autogenerate -m "create_tables" --rev-id 0001
 
 source srv_payment/.venv/bin/activate
 uvicorn srv_payment.src.main:app --port 8004 --reload
+alembic -c srv_payment/alembic.ini revision --autogenerate -m "create_tables" --rev-id 0001
+
+source srv_notification/.venv/bin/activate
+uvicorn srv_notification.src.main:app --port 8004 --reload
+alembic -c srv_notification/alembic.ini revision --autogenerate -m "create_tables" --rev-id 0001
+
+
+docker compose build --no-cache
+
+
+poetry add alembic
+
+инициализируем
+poetry run alembic init alembic
+
+запускаем создание миграции
+alembic -c srv_auth/alembic.ini revision --autogenerate -m "create_tables" --rev-id 0001
+
+проверка завершеных миграций
+alembic -c srv_payment/alembic.ini current
+
+применяем последнюю созданную миграцию
+alembic -c srv_payment/alembic.ini upgrade head
 
 
 поправить потом

@@ -11,9 +11,6 @@ from core_app.rabbit import rabbit_payment_auth
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
     await rabbit_payment_auth.start()      
     logger.warning("START service AUTH")
     yield

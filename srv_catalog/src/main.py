@@ -15,9 +15,6 @@ from srv_catalog.src.rabbit.reg_consum import register_consumers_catalog_order
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
     await register_consumers_catalog_order(rabbit_catalog_order)
 
     await rabbit_catalog_order.start()

@@ -1,4 +1,24 @@
 services:
+  postgres:
+    image: postgres:16-alpine
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-admin}
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
   rabbitmq:
     image: rabbitmq:3-management
     ports:
@@ -7,10 +27,90 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
-      
-  serv_auth:
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmq-diagnostics -q ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
+  srv_payment:
+    build:
+      context: .
+      dockerfile: srv_payment/Dockerfile
+      target: production
+    ports:
+      - "8004:8004"
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  srv_notification:
+    build:
+      context: .
+      dockerfile: srv_notification/Dockerfile
+      target: production
+    ports:
+      - "8005:8005"
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  srv_order:
+    build:
+      context: .
+      dockerfile: srv_order/Dockerfile
+      target: production
+    ports:
+      - "8003:8003"
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  srv_catalog:
+    build:
+      context: .
+      dockerfile: srv_catalog/Dockerfile
+      target: production
+    ports:
+      - "8002:8002"
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  srv_auth:
     build:
       context: .
       dockerfile: srv_auth/Dockerfile
+      target: production
     ports:
       - "8001:8001"
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  rabbitmq_data:

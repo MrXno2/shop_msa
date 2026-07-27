@@ -12,9 +12,6 @@ from srv_payment.src.modules.wallet.routers import router as router_wallet
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
     await register_consumers_payment_order(rabbit_payment_order)
     await register_consumers_payment_auth(rabbit_payment_auth)
 
