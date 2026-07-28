@@ -36,13 +36,13 @@ services:
       retries: 5
     restart: unless-stopped
 
-  srv_payment:
+  srv_auth:
     build:
       context: .
-      dockerfile: srv_payment/Dockerfile
+      dockerfile: srv_auth/Dockerfile
       target: production
     ports:
-      - "8004:8004"
+      - "8001:8001"
     env_file:
       - .env
     depends_on:
@@ -50,36 +50,7 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
-
-  srv_notification:
-    build:
-      context: .
-      dockerfile: srv_notification/Dockerfile
-      target: production
-    ports:
-      - "8005:8005"
-    env_file:
-      - .env
-    depends_on:
-      postgres:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-
-  srv_order:
-    build:
-      context: .
-      dockerfile: srv_order/Dockerfile
-      target: production
-    ports:
-      - "8003:8003"
-    env_file:
-      - .env
-    depends_on:
-      postgres:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
+    restart: unless-stopped
 
   srv_catalog:
     build:
@@ -95,14 +66,15 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    restart: unless-stopped
 
-  srv_auth:
+  srv_order:
     build:
       context: .
-      dockerfile: srv_auth/Dockerfile
+      dockerfile: srv_order/Dockerfile
       target: production
     ports:
-      - "8001:8001"
+      - "8003:8003"
     env_file:
       - .env
     depends_on:
@@ -110,6 +82,58 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    restart: unless-stopped
+
+  srv_payment:
+    build:
+      context: .
+      dockerfile: srv_payment/Dockerfile
+      target: production
+    ports:
+      - "8004:8004"
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  srv_notification:
+    build:
+      context: .
+      dockerfile: srv_notification/Dockerfile
+      target: production
+    ports:
+      - "8005:8005"
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      srv_auth:
+        condition: service_started
+      srv_catalog:
+        condition: service_started
+      srv_order:
+        condition: service_started
+      srv_payment:
+        condition: service_started
+      srv_notification:
+        condition: service_started
+    restart: unless-stopped
 
 volumes:
   postgres_data:
