@@ -12,3 +12,4 @@ dist/
 .pytest_cache
 **/.vscode/
 AGENTS.md
+README dev.md

@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 def setup_logger(name: str = "app", level: str = "INFO") -> Logger:
-    """Настройка логгера с подробным выводом"""  # noqa: RUF002
+    """Настройка логгера с подробным выводом"""
 
     # Создаем логгер
     logger = logging.getLogger(name)
@@ -16,7 +16,7 @@ def setup_logger(name: str = "app", level: str = "INFO") -> Logger:
     if logger.hasHandlers():
         logger.handlers.clear()
 
-    # Создаем форматтер с файлом и строкой # noqa: RUF003
+    # Создаем форматтер с файлом и строкой
     formatter = logging.Formatter(
         fmt="%(asctime)s | %(levelname)-8s | %(filename)s:%(lineno)d | %(funcName)s() | %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",

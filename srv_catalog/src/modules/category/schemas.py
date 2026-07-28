@@ -1,6 +1,6 @@
 from uuid import UUID
-from pydantic import BaseModel, ConfigDict, Field
 
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class CategoryRequestSchema(BaseModel):

@@ -1,6 +1,4 @@
-from datetime import datetime
 from decimal import Decimal
-from typing import List
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
@@ -26,7 +24,7 @@ class RabbitSendOrderPaymentSchema(BaseModel):
 class RabbitOrderToCatalogSchema(BaseModel):
     id_order: int
     uuid_user: UUID
-    products: List[dict]
+    products: list[dict]
 
 
 class RabbitPaymentStatusUpdateSchema(BaseModel):

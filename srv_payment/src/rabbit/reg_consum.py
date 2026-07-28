@@ -1,4 +1,8 @@
-from srv_payment.src.rabbit.services import RabbitPaymentAuthService, RabbitPaymentOrderService
+from srv_payment.src.rabbit.services import (
+    RabbitPaymentAuthService,
+    RabbitPaymentOrderService,
+)
+
 from core_app.rabbit import RabbitMain
 
 
@@ -22,5 +26,5 @@ async def register_consumers_payment_auth(
     rabbit.consumer(
         queue="payment_auth.created",
         routing_key="payment_auth.created",
-        handler=auth_serv.create_user
+        handler=auth_serv.create_user,
     )

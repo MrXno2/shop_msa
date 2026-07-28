@@ -1,6 +1,6 @@
 from decimal import Decimal
-from typing import List
 from uuid import UUID
+
 from pydantic import BaseModel, ConfigDict
 
 
@@ -18,7 +18,7 @@ class RabbitRequestOrderProductsSchema(BaseModel):
 class RabbitRequestOrderSchema(BaseModel):
     id_order: int
     uuid_user: UUID
-    products: List[RabbitRequestOrderProductsSchema]
+    products: list[RabbitRequestOrderProductsSchema]
 
 
 class RabbitResponseCatalogSchema(BaseModel):

@@ -1,15 +1,13 @@
 import asyncio
 from logging.config import fileConfig
+
+from core_app.settings import settings
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
-from alembic import context
-
-from core_app.settings import settings
 from srv_catalog.src.db.models.base import Base
-from srv_catalog.src.db.models.category import CategoryORM
-from srv_catalog.src.db.models.product import ProductORM
 
+from alembic import context
 
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.POSTGRES_URL_SERV_CATALOG)

@@ -1,7 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
-from typing import List
 from uuid import UUID
+
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -29,4 +29,4 @@ class OrderResponseSchema(BaseModel):
     status_payment: bool
     created_at: datetime
     total_price: Decimal
-    items: List[dict]
+    items: list[dict]

@@ -10,7 +10,4 @@ def hashed_pass(password: str) -> str:
 
 # проверка пароля
 def verify_password(password: str, hashed_password: str) -> bool:
-    return bcrypt.checkpw(
-        password.encode("utf-8"),
-        hashed_password.encode("utf-8"),  # ← превращаем строку в байты
-    )
+    return bcrypt.checkpw(password.encode("utf-8"), hashed_password.encode("utf-8"))

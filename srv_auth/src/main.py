@@ -1,20 +1,20 @@
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
-from core_app.middleware import set_cors
-from srv_auth.src.db.models.base import Base
-from srv_auth.src.modules.auth.routers import router as routers_auth
+
 from core_app.exception_handler import register_exception_handlers
-from srv_auth.src.db.session import engine
 from core_app.logger import logger
+from core_app.middleware import set_cors
 from core_app.rabbit import rabbit_payment_auth
+from srv_auth.src.modules.auth.routers import router as routers_auth
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await rabbit_payment_auth.start()      
+    await rabbit_payment_auth.start()
     logger.warning("START service AUTH")
     yield
-    await rabbit_payment_auth.stop() 
+    await rabbit_payment_auth.stop()
     logger.warning("STOP service AUTH")
 
 
@@ -25,6 +25,7 @@ register_exception_handlers(app=app)
 set_cors(app=app)
 
 app.include_router(routers_auth)
+
 
 @app.get("/health")
 async def health():

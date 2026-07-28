@@ -15,10 +15,55 @@ dependencies = [
     "asyncpg (>=0.31.0,<0.32.0)",
     "pyjwt (>=2.13.0,<3.0.0)",
     "aio-pika (>=10.0.1,<11.0.0)",
-    "alembic (>=1.18.5,<2.0.0)"
+    "alembic (>=1.18.5,<2.0.0)",
 ]
 
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+# === RUFF CONFIGURATION ===
+[tool.ruff]
+extend-exclude = ["alembic"]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort (сортировка импортов)
+    "B",  # flake8-bugbear (поиск частых ошибок)
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+]
+ignore = [
+    "E501", # line too long (мы доверяем ruff format)
+    "B008", # do not perform function calls in argument defaults (нужно для FastAPI Depends)
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["core_app", "srv_auth"] # Укажи здесь имя текущего сервиса
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+# === PYTEST CONFIGURATION ===
+[tool.pytest.ini_options]
+asyncio_mode = "auto" # Автоматически определяет async тесты
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+addopts = "-v --tb=short"
+[dependency-groups]
+dev = [
+    "ruff (>=0.16.0,<0.17.0)",
+    "pytest (>=9.1.1,<10.0.0)",
+    "pytest-asyncio (>=1.4.0,<2.0.0)",
+    "httpx (>=0.28.1,<0.29.0)"
+]

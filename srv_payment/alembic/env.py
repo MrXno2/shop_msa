@@ -1,14 +1,13 @@
 import asyncio
 from logging.config import fileConfig
+
+from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
-from alembic import context
 
 from core_app.settings import settings
 from srv_payment.src.db.models.base import Base
-from srv_payment.src.db.models.wallet import WalletORM
-from srv_payment.src.db.models.history_wallet import HistoryWalletORM
 
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.POSTGRES_URL_SERV_PAYMENT)
@@ -32,10 +31,7 @@ def run_migrations_offline() -> None:
 
 
 def do_run_migrations(connection: Connection) -> None:
-    context.configure(
-        connection=connection, 
-        target_metadata=target_metadata
-    )
+    context.configure(connection=connection, target_metadata=target_metadata)
     with context.begin_transaction():
         context.run_migrations()
 

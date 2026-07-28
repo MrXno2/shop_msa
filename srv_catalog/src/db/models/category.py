@@ -1,6 +1,6 @@
 from sqlalchemy import String, Text
-from srv_catalog.src.db.models.base import Base
 from sqlalchemy.orm import Mapped, mapped_column
+from srv_catalog.src.db.models.base import Base
 
 
 class CategoryORM(Base):

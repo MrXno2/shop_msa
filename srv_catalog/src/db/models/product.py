@@ -1,9 +1,10 @@
 from decimal import Decimal
 from uuid import UUID
+
 from sqlalchemy import Integer, Numeric, String, Text
-from srv_catalog.src.db.models.base import Base
-from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
+from sqlalchemy.orm import Mapped, mapped_column
+from srv_catalog.src.db.models.base import Base
 
 
 class ProductORM(Base):
@@ -16,8 +17,4 @@ class ProductORM(Base):
     stock: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     image_url: Mapped[str] = mapped_column(String(1000), nullable=True)
 
-    category_id: Mapped[UUID] = mapped_column(
-        PG_UUID(as_uuid=True),
-        nullable=False,
-        index=True
-    )
+    category_id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), nullable=False, index=True)

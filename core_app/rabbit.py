@@ -8,7 +8,6 @@ import aio_pika
 from core_app.logger import logger
 from core_app.settings import settings
 
-
 Handler = Callable[[aio_pika.IncomingMessage], Awaitable[None]]
 
 
@@ -31,7 +30,6 @@ class RabbitMain:
         self._registered: list[Consumer] = []
         self._tasks: list[asyncio.Task[None]] = []
 
-
     def consumer(
         self,
         *,
@@ -50,7 +48,6 @@ class RabbitMain:
             )
         )
 
-
     async def start(self) -> None:
         self._connection = await aio_pika.connect_robust(settings.RABBIT_URL)
         self._channel = await self._connection.channel()
@@ -61,11 +58,8 @@ class RabbitMain:
             durable=True,
         )
         for consumer in self._registered:
-            task = asyncio.create_task(
-                self._run_consumer(consumer)
-            )
+            task = asyncio.create_task(self._run_consumer(consumer))
             self._tasks.append(task)
-
 
     async def publish(
         self,
@@ -82,7 +76,6 @@ class RabbitMain:
             ),
             routing_key=routing_key,
         )
-
 
     async def _run_consumer(
         self,
@@ -103,7 +96,7 @@ class RabbitMain:
         async with queue.iterator() as iterator:
             async for message in iterator:
                 try:
-                    await consumer.handler(message) #type: ignore
+                    await consumer.handler(message)  # type: ignore
                     await message.ack()
                 except asyncio.CancelledError:
                     await message.nack(requeue=False)
@@ -111,7 +104,6 @@ class RabbitMain:
                 except Exception:
                     await message.nack(requeue=True)
                     logger.exception("handler failed")
-
 
     async def stop(self) -> None:
         for task in self._tasks:

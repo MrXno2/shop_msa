@@ -1,17 +1,15 @@
-from datetime import timedelta
 from pathlib import Path
-#from authx.types import TokenLocation
-from pydantic import computed_field
+
+# from authx.types import TokenLocation
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-
 # нужно установить прямой путь к корню проекта и передавать в env
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=BASE_DIR / ".env", env_file_encoding="utf-8"
+        env_file=BASE_DIR / ".env", env_file_encoding="utf-8", extra="ignore"
     )
 
     PROJECT_NAME: str = "my-project"
@@ -24,11 +22,21 @@ class Settings(BaseSettings):
 
     RABBIT_URL: str = "amqp://guest:guest@localhost:5672/"
 
-    POSTGRES_URL_SERV_AUTH: str = "postgresql+asyncpg://postgres:admin@localhost:5432/postgres"
-    POSTGRES_URL_SERV_ORDER: str = "postgresql+asyncpg://postgres:admin@localhost:5432/postgres"
-    POSTGRES_URL_SERV_CATALOG: str = "postgresql+asyncpg://postgres:admin@localhost:5432/postgres"
-    POSTGRES_URL_SERV_PAYMENT: str = "postgresql+asyncpg://postgres:admin@localhost:5432/postgres"
-    POSTGRES_URL_SERV_NOTIFICATION: str = "postgresql+asyncpg://postgres:admin@localhost:5432/postgres"
+    POSTGRES_URL_SERV_AUTH: str = (
+        "postgresql+asyncpg://postgres:admin@localhost:5432/postgres"
+    )
+    POSTGRES_URL_SERV_ORDER: str = (
+        "postgresql+asyncpg://postgres:admin@localhost:5432/postgres"
+    )
+    POSTGRES_URL_SERV_CATALOG: str = (
+        "postgresql+asyncpg://postgres:admin@localhost:5432/postgres"
+    )
+    POSTGRES_URL_SERV_PAYMENT: str = (
+        "postgresql+asyncpg://postgres:admin@localhost:5432/postgres"
+    )
+    POSTGRES_URL_SERV_NOTIFICATION: str = (
+        "postgresql+asyncpg://postgres:admin@localhost:5432/postgres"
+    )
 
     ADMIN_PANEL_USER: str = "admin"
     ADMIN_PANEL_PASSWORD: str = "qwerty"

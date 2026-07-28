@@ -5,11 +5,11 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import func, select, update
-from core_app.security import is_validity_token
 from sqlalchemy.ext.asyncio import AsyncSession
 from srv_notification.src.db.models.notification import NotificationORM
 from srv_notification.src.dependensies import DbDep
 
+from core_app.security import is_validity_token
 
 router = APIRouter(prefix="/notification")
 
@@ -46,16 +46,13 @@ class NotificationRepository:
             select(func.count())
             .select_from(NotificationORM)
             .where(
-                NotificationORM.uuid_user == uuid_user,
-                NotificationORM.is_read == False
+                NotificationORM.uuid_user == uuid_user, NotificationORM.is_read.is_(False)
             )
         )
         return result.scalar_one()
 
     async def get_notifications(
-        self,
-        uuid_user: UUID,
-        pagination: PaginationSchema
+        self, uuid_user: UUID, pagination: PaginationSchema
     ) -> list[NotificationORM]:
         result = await self.db.execute(
             select(NotificationORM)
@@ -66,9 +63,7 @@ class NotificationRepository:
         return list(result.scalars().all())
 
     async def update_read_notification(
-        self, 
-        uuid_user: UUID,
-        req_update_notif: UpdateNotifSchema
+        self, uuid_user: UUID, req_update_notif: UpdateNotifSchema
     ) -> None:
         if not req_update_notif.uuid_notifications:
             return
@@ -76,12 +71,11 @@ class NotificationRepository:
             update(NotificationORM)
             .where(
                 NotificationORM.uuid_user == uuid_user,
-                NotificationORM.uuid.in_(req_update_notif.uuid_notifications)
+                NotificationORM.uuid.in_(req_update_notif.uuid_notifications),
             )
-            .values(is_read = True)
+            .values(is_read=True)
         )
         await self.db.execute(query)
-
 
 
 class NotificationService:
@@ -90,24 +84,21 @@ class NotificationService:
         self.notif_repo = NotificationRepository(db)
 
     async def update_read_notification(
-        self, 
-        uuid_user: UUID,
-        req_update_notif: UpdateNotifSchema
+        self, uuid_user: UUID, req_update_notif: UpdateNotifSchema
     ) -> None:
-        await self.notif_repo.update_read_notification(uuid_user=uuid_user, req_update_notif=req_update_notif)
+        await self.notif_repo.update_read_notification(
+            uuid_user=uuid_user, req_update_notif=req_update_notif
+        )
         await self.db.commit()
 
     async def get_unread_count(self, uuid_user: UUID) -> int:
         return await self.notif_repo.get_unread_count(uuid_user=uuid_user)
 
     async def get_notifications(
-            self,
-            uuid_user: UUID,
-            pagination: PaginationSchema
-        ) -> list[ResponseAllNotifSchema]:
+        self, uuid_user: UUID, pagination: PaginationSchema
+    ) -> list[ResponseAllNotifSchema]:
         result = await self.notif_repo.get_notifications(
-            uuid_user = uuid_user,
-            pagination = pagination
+            uuid_user=uuid_user, pagination=pagination
         )
         return [ResponseAllNotifSchema.model_validate(elem) for elem in result]
 
@@ -115,13 +106,15 @@ class NotificationService:
 async def get_notification_service(db: DbDep) -> NotificationService:
     return NotificationService(db=db)
 
-NotificationServiceDep = Annotated[NotificationService, Depends(get_notification_service)]
+
+NotificationServiceDep = Annotated[
+    NotificationService, Depends(get_notification_service)
+]
 
 
 @router.get("/count")
 async def get_unread_count(
-    notif_serv: NotificationServiceDep,
-    payload = Depends(is_validity_token)
+    notif_serv: NotificationServiceDep, payload=Depends(is_validity_token)
 ) -> int:
     uuid_user = payload.get("uuid")
     return await notif_serv.get_unread_count(uuid_user=uuid_user)
@@ -131,17 +124,21 @@ async def get_unread_count(
 async def get_notification(
     notif_serv: NotificationServiceDep,
     pagination: PaginationSchema = Depends(),
-    payload = Depends(is_validity_token)
+    payload=Depends(is_validity_token),
 ) -> list[ResponseAllNotifSchema]:
     uuid_user = payload.get("uuid")
-    return await notif_serv.get_notifications(uuid_user=uuid_user, pagination=pagination)
+    return await notif_serv.get_notifications(
+        uuid_user=uuid_user, pagination=pagination
+    )
 
 
 @router.patch("/update")
 async def update_read_notification(
     req_update_notif: UpdateNotifSchema,
     notif_serv: NotificationServiceDep,
-    payload = Depends(is_validity_token)
+    payload=Depends(is_validity_token),
 ) -> None:
     uuid_user = payload.get("uuid")
-    await notif_serv.update_read_notification(uuid_user=uuid_user, req_update_notif=req_update_notif)
+    await notif_serv.update_read_notification(
+        uuid_user=uuid_user, req_update_notif=req_update_notif
+    )

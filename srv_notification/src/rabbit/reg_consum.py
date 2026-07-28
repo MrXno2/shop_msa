@@ -1,5 +1,6 @@
-from core_app.rabbit import RabbitMain
 from srv_notification.src.rabbit.services import RabbitNotificationService
+
+from core_app.rabbit import RabbitMain
 
 
 async def register_consumers_all_notification(

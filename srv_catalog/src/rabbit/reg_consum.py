@@ -1,5 +1,6 @@
-from core_app.rabbit import RabbitMain
 from srv_catalog.src.rabbit.services import RabbitCatalogOrderService
+
+from core_app.rabbit import RabbitMain
 
 
 async def register_consumers_catalog_order(

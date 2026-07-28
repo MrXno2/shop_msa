@@ -1,4 +1,8 @@
-from srv_order.src.rabbit.services import RabbitCatalogOrderService, RabbitPaymentOrderService
+from srv_order.src.rabbit.services import (
+    RabbitCatalogOrderService,
+    RabbitPaymentOrderService,
+)
+
 from core_app.rabbit import RabbitMain
 
 
@@ -28,6 +32,7 @@ async def register_consumers_catalog_order(
         routing_key="catalog_order.handle_stock_deduction_result",
         handler=order_serv.handle_stock_deduction_result,
     )
+
 
 async def register_consumers_payment_order(
     rabbit: RabbitMain,
