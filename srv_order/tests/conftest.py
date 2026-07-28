@@ -1,3 +1,4 @@
+import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest_asyncio
@@ -14,6 +15,16 @@ from core_app.settings import settings
 TEST_DATABASE_URL = make_test_database_url(
     settings.POSTGRES_URL_SERV_ORDER, "shop_order_test"
 )
+
+
+@pytest.fixture
+def mock_catalog_publish():
+    mock = MagicMock()
+    mock.start = AsyncMock()
+    mock.stop = AsyncMock()
+    mock.consumer = MagicMock()
+    mock.publish = AsyncMock()
+    return mock
 
 
 @pytest_asyncio.fixture(scope="function")
@@ -38,17 +49,13 @@ async def db_session() -> AsyncSession:
 
 
 @pytest_asyncio.fixture
-async def client(db_session: AsyncSession) -> AsyncClient:
+async def client(db_session: AsyncSession, mock_catalog_publish: MagicMock) -> AsyncClient:
     async def override_get_db():
         yield db_session
 
     app.dependency_overrides[get_db] = override_get_db
 
-    mock_catalog = MagicMock()
-    mock_catalog.start = AsyncMock()
-    mock_catalog.stop = AsyncMock()
-    mock_catalog.consumer = MagicMock()
-    mock_catalog.publish = AsyncMock()
+    mock_catalog = mock_catalog_publish
 
     mock_payment = MagicMock()
     mock_payment.start = AsyncMock()

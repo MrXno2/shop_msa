@@ -1,4 +1,5 @@
 from decimal import Decimal
+from unittest.mock import MagicMock
 from uuid import uuid4
 
 import pytest
@@ -136,12 +137,22 @@ class TestCreateOrder:
         assert order.total_price == Decimal("190.00")
 
     @pytest.mark.asyncio
-    async def test_publishes_to_rabbitmq(self, client: AsyncClient, db_session: AsyncSession):
+    async def test_publishes_to_rabbitmq(
+        self, client: AsyncClient, db_session: AsyncSession, mock_catalog_publish: MagicMock
+    ):
         headers, user_uuid = _user_headers()
         await _seed_product_and_cart(db_session, user_uuid)
 
         response = await client.post("/order/create", headers=headers)
         assert response.status_code == 200
+
+        mock_catalog_publish.publish.assert_awaited_once()
+        call_args = mock_catalog_publish.publish.call_args
+        assert call_args.args[0] == "catalog_order.deduct_from_stock"
+        payload = call_args.args[1]
+        assert "id_order" in payload
+        assert payload["uuid_user"] == str(user_uuid)
+        assert len(payload["products"]) == 1
 
 
 class TestUpdateStatusOrder:
