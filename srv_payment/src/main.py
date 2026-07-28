@@ -10,7 +10,7 @@ from srv_payment.src.rabbit.reg_consum import (
 from core_app.exception_handler import register_exception_handlers
 from core_app.logger import logger
 from core_app.middleware import set_cors
-from core_app.rabbit import rabbit_payment_auth, rabbit_payment_order
+from core_app.rabbit import rabbit_payment_auth, rabbit_payment_order, rabbit_all_notification
 
 
 @asynccontextmanager
@@ -20,10 +20,12 @@ async def lifespan(app: FastAPI):
 
     await rabbit_payment_auth.start()
     await rabbit_payment_order.start()
+    await rabbit_all_notification.start()
     logger.warning("START service PAYMENT")
 
     yield
 
+    await rabbit_all_notification.stop()
     await rabbit_payment_auth.stop()
     await rabbit_payment_order.stop()
     logger.warning("STOP service PAYMENT")

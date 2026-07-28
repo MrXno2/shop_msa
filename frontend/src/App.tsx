@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import AuthPage from './pages/AuthPage'
+import AdminLoginPage from './pages/AdminLoginPage'
 import CatalogPage from './pages/CatalogPage'
 import CartPage from './pages/CartPage'
 import OrdersPage from './pages/OrdersPage'
@@ -13,6 +14,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/auth" element={<AuthPage />} />
+      <Route path="/admin/login" element={<AdminLoginPage />} />
 
       <Route element={<ProtectedRoute />}>
         <Route element={<Layout />}>

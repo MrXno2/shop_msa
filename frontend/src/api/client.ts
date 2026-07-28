@@ -14,7 +14,7 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401) {
       const isAdminPage = window.location.pathname.startsWith('/admin')
       if (isAdminPage) {
-        window.location.href = '/auth?mode=admin'
+        window.location.href = '/admin/login'
       } else {
         window.location.href = '/auth'
       }

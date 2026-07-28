@@ -36,7 +36,7 @@ export function useRegister() {
   })
 }
 
-export function useMe() {
+export function useMe(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ['me'],
     queryFn: async () => {
@@ -44,6 +44,7 @@ export function useMe() {
       return data
     },
     retry: false,
+    ...options,
   })
 }
 

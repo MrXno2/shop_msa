@@ -1,5 +1,6 @@
-import { Outlet, Link, useLocation } from 'react-router-dom'
-import { useMeAdmin, useUnreadCount } from '../api/hooks'
+import { useState } from 'react'
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
+import { useMe, useMeAdmin, useUnreadCount, useBalance } from '../api/hooks'
 
 const userLinks = [
   { to: '/catalog', label: 'Каталог' },
@@ -14,10 +15,20 @@ const adminLinks = [
 
 export default function Layout() {
   const location = useLocation()
+  const navigate = useNavigate()
   const isAdminPage = location.pathname.startsWith('/admin')
+  const { data: userUuid } = useMe({ enabled: !isAdminPage })
   const { data: adminUuid } = useMeAdmin({ enabled: isAdminPage })
   const { data: unreadCount } = useUnreadCount()
+  const { data: balance } = useBalance()
   const links = isAdminPage ? adminLinks : userLinks
+  const [copied, setCopied] = useState(false)
+
+  const handleLogout = () => {
+    document.cookie = 'access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
+    document.cookie = 'admin_access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
+    navigate(isAdminPage ? '/admin/login' : '/auth')
+  }
 
   return (
     <div className="min-h-screen">
@@ -25,7 +36,7 @@ export default function Layout() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center gap-8">
-              <Link to="/catalog" className="text-xl font-bold text-blue-600">
+              <Link to={isAdminPage ? '/admin' : '/catalog'} className="text-xl font-bold text-blue-600">
                 Shop MSA
               </Link>
               <div className="flex gap-4">
@@ -53,16 +64,30 @@ export default function Layout() {
               {adminUuid && (
                 <span className="text-sm text-gray-500">Admin</span>
               )}
-              <Link
-                to="/auth"
+              {!isAdminPage && balance !== undefined && (
+                <span className="rounded-md bg-green-50 px-3 py-1.5 text-sm font-medium text-green-700">
+                  {Number(balance).toLocaleString('ru-RU')} ₽
+                </span>
+              )}
+              {userUuid && (
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(userUuid)
+                    setCopied(true)
+                    setTimeout(() => setCopied(false), 1500)
+                  }}
+                  className="rounded-md px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-700"
+                  title={copied ? 'Скопировано!' : userUuid}
+                >
+                  {copied ? 'Скопировано!' : 'UUID'}
+                </button>
+              )}
+              <button
+                onClick={handleLogout}
                 className="rounded-md px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50"
-                onClick={() => {
-                  document.cookie = 'access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
-                  document.cookie = 'admin_access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
-                }}
               >
                 Выйти
-              </Link>
+              </button>
             </div>
           </div>
         </div>

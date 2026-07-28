@@ -57,6 +57,7 @@ class NotificationRepository:
         result = await self.db.execute(
             select(NotificationORM)
             .where(NotificationORM.uuid_user == uuid_user)
+            .order_by(NotificationORM.created_at.desc())
             .limit(pagination.limit)
             .offset(pagination.offset)
         )
